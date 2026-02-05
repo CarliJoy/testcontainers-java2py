@@ -320,12 +320,9 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # Note: Use underscores for package names (hyphens not allowed in Python)
 mkdir testcontainers_python
 cd testcontainers_python
-uv init --lib  # Creates package structure
+uv init --lib  # Creates package structure with 'testcontainers_python' as package name
 
-# Or simply:
-# mkdir my-project && cd my-project
-# uv init --lib
-# Then configure package name as 'testcontainers' in pyproject.toml
+# Configure in pyproject.toml to use 'testcontainers' as the import name if desired
 
 # Create virtual environment
 uv venv
@@ -463,7 +460,7 @@ ruff format .
 - `int`, `Integer` → `int`
 - `boolean` → `bool`
 - `List<T>` → `list[T]` (Python 3.9+, preferred)
-- `Map<K,V>` → `dict[K, V]` (Python 3.9+, preferred)
+- `Map<K, V>` → `dict[K, V]` (Python 3.9+, preferred)
 - `Optional<T>` → `Optional[T]` or `T | None` (Python 3.10+)
 - `void method()` → `def method() -> None:`
 - `@Override` → no equivalent (just document in docstring)
