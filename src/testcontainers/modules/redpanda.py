@@ -69,7 +69,7 @@ class RedpandaContainer(GenericContainer):
         Initialize a Redpanda container.
 
         Args:
-            image: Docker image name (default: redpandadata/redpanda:latest)
+            image: Docker image name (default: redpandadata/redpanda:v23.3.1)
         """
         super().__init__(image)
 
