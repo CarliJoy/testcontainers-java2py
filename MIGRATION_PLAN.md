@@ -151,7 +151,7 @@
    - Type hints with `typing` module
    - Dataclasses for configuration objects
    - Async/await support (optional, for advanced users)
-   - Pattern matching (Python 3.10+) where beneficial
+   - Pattern matching (Python 3.10+) for container state handling
    - `pathlib` for file operations
    
    **Backward Compatibility:**
