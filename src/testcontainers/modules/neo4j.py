@@ -1,7 +1,6 @@
 """Neo4j graph database container wrapper."""
 
 from __future__ import annotations
-from typing import Set
 from testcontainers.core.generic_container import GenericContainer
 from testcontainers.waiting.log import LogMessageWaitStrategy
 from testcontainers.waiting.http import HttpWaitStrategy

@@ -6,7 +6,7 @@ from testcontainers.waiting.log import LogMessageWaitStrategy
 
 
 class LocalStackContainer(GenericContainer):
-    """Wrapper for LocalStack 0.11.2+ AWS service emulation."""
+    """Wrapper for LocalStack AWS service emulation (version 0.11.2)."""
 
     def __init__(self, image: str = "localstack/localstack:0.11.2"):
         super().__init__(image)

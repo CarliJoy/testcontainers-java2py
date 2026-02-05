@@ -48,8 +48,8 @@ class TestNGINXContainer:
         
         assert 80 in nginx._exposed_ports
 
-    def test_nginx_get_url_not_started(self):
-        """Test that get_base_url works with mock."""
+    def test_nginx_get_base_url_with_mock(self):
+        """Test that get_base_url generates correct URL with mocked container."""
         nginx = NGINXContainer()
         nginx._container = MagicMock()
         
@@ -59,8 +59,8 @@ class TestNGINXContainer:
         
         assert url == "http://localhost:80"
 
-    def test_nginx_get_https_url_not_started(self):
-        """Test nginx container has command set."""
+    def test_nginx_command_configuration(self):
+        """Test nginx container has command set correctly."""
         nginx = NGINXContainer()
         
         assert nginx._command == ["nginx", "-g", "daemon off;"]
@@ -114,8 +114,8 @@ class TestLocalStackContainer:
         assert result is localstack
         assert localstack._enabled_services == []
 
-    def test_localstack_get_url_not_started(self):
-        """Test that get_url works with mock."""
+    def test_localstack_get_url_with_mock(self):
+        """Test that get_url generates correct URL with mocked container."""
         localstack = LocalStackContainer()
         localstack._container = MagicMock()
         
