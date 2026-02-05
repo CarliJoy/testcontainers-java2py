@@ -42,6 +42,9 @@ class MongoDBContainer(GenericContainer):
     MONGODB_PORT = 27017
     MONGODB_DATABASE_NAME_DEFAULT = "test"
     REPLICA_SET_NAME = "docker-rs"
+    
+    # Shell command pattern for MongoDB client (tries mongosh first, falls back to mongo)
+    _MONGO_SHELL_COMMAND = 'mongosh --eval "{}" || mongo --eval "{}"'
 
     def __init__(self, image: str = DEFAULT_IMAGE):
         """
@@ -97,7 +100,7 @@ class MongoDBContainer(GenericContainer):
             [
                 "sh",
                 "-c",
-                'mongosh --eval "rs.initiate();" || mongo --eval "rs.initiate();"'
+                self._MONGO_SHELL_COMMAND.format("rs.initiate();", "rs.initiate();")
             ]
         )
         
@@ -106,13 +109,13 @@ class MongoDBContainer(GenericContainer):
 
         # Wait for replica set to be ready (matching Java's AWAIT_INIT_REPLICA_SET_ATTEMPTS)
         max_attempts = 60
+        check_cmd = "if(db.runCommand({isMaster:1}).ismaster==false) quit(1);"
         for attempt in range(max_attempts):
             exit_code, _ = self.exec(
                 [
                     "sh",
                     "-c",
-                    'mongosh --eval "if(db.runCommand({isMaster:1}).ismaster==false) quit(1);" || '
-                    'mongo --eval "if(db.runCommand({isMaster:1}).ismaster==false) quit(1);"'
+                    self._MONGO_SHELL_COMMAND.format(check_cmd, check_cmd)
                 ]
             )
             
@@ -130,12 +133,12 @@ class MongoDBContainer(GenericContainer):
         Returns:
             True if replica set is initialized, False otherwise
         """
+        check_cmd = "if(db.adminCommand({replSetGetStatus:1})['myState']!=1) quit(900);"
         exit_code, _ = self.exec(
             [
                 "sh",
                 "-c",
-                'mongosh --eval "if(db.adminCommand({replSetGetStatus:1})[\'myState\']!=1) quit(900);" || '
-                'mongo --eval "if(db.adminCommand({replSetGetStatus:1})[\'myState\']!=1) quit(900);"'
+                self._MONGO_SHELL_COMMAND.format(check_cmd, check_cmd)
             ]
         )
         return exit_code == 0
