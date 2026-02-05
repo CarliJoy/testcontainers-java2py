@@ -45,7 +45,6 @@ class RabbitMQContainer(GenericContainer):
     # Default configuration
     DEFAULT_IMAGE = "rabbitmq:3-management"
     DEFAULT_AMQP_PORT = 5672
-    DEFAULT_HTTPS_PORT = 5671
     DEFAULT_MANAGEMENT_PORT = 15672
 
     # Default credentials

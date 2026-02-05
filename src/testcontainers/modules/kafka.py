@@ -46,6 +46,7 @@ class KafkaContainer(GenericContainer):
     DEFAULT_IMAGE = "confluentinc/cp-kafka:7.5.0"
     DEFAULT_KAFKA_PORT = 9092
     DEFAULT_INTERNAL_KAFKA_PORT = 9093
+    DEFAULT_CONTROLLER_PORT = 9093  # KRaft controller port (same as internal)
 
     def __init__(self, image: str = DEFAULT_IMAGE):
         """
@@ -58,6 +59,7 @@ class KafkaContainer(GenericContainer):
 
         self._kafka_port = self.DEFAULT_KAFKA_PORT
         self._internal_kafka_port = self.DEFAULT_INTERNAL_KAFKA_PORT
+        self._controller_port = self.DEFAULT_CONTROLLER_PORT
         self._cluster_id: str | None = None
 
         # Expose Kafka port
@@ -113,7 +115,7 @@ class KafkaContainer(GenericContainer):
         # Configure KRaft mode (Kafka without ZooKeeper)
         self.with_env("KAFKA_PROCESS_ROLES", "broker,controller")
         self.with_env("KAFKA_NODE_ID", "1")
-        self.with_env("KAFKA_CONTROLLER_QUORUM_VOTERS", f"1@localhost:9093")
+        self.with_env("KAFKA_CONTROLLER_QUORUM_VOTERS", f"1@localhost:{self._controller_port}")
         self.with_env("KAFKA_CONTROLLER_LISTENER_NAMES", "CONTROLLER")
         self.with_env("CLUSTER_ID", self._cluster_id)
         
@@ -127,7 +129,7 @@ class KafkaContainer(GenericContainer):
         self.with_env(
             "KAFKA_LISTENERS",
             f"PLAINTEXT://0.0.0.0:{self._internal_kafka_port},"
-            f"CONTROLLER://0.0.0.0:9093,"
+            f"CONTROLLER://0.0.0.0:{self._controller_port},"
             f"PLAINTEXT_HOST://0.0.0.0:{self._kafka_port}"
         )
         
