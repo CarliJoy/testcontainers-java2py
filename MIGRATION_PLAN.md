@@ -9,7 +9,8 @@
 - ~68,000 lines of Java code
 - Core library + 63 specialized modules
 - Gradle-based build system
-- Java 17 toolchain, targeting Java 8
+- Java 17 toolchain (compiles to Java 8 bytecode for compatibility)
+- Note: Source uses Java 8 features; newer Java features not required for conversion
 
 **Approach:**
 - **Direct conversion** of Java code to Python (no comparison with existing implementations)
@@ -318,7 +319,10 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # Create new Python project
 mkdir testcontainers-python
 cd testcontainers-python
-uv init --name testcontainers --lib
+uv init --lib  # Creates package structure
+
+# Note: This creates a package named after the directory (testcontainers-python)
+# You can rename in pyproject.toml later if desired
 
 # Create virtual environment
 uv venv
@@ -455,15 +459,17 @@ ruff format .
 - `String` → `str`
 - `int`, `Integer` → `int`
 - `boolean` → `bool`
-- `List<T>` → `list[T]` or `List[T]`
-- `Map<K,V>` → `dict[K, V]` or `Dict[K, V]`
-- `Optional<T>` → `Optional[T]` or `T | None`
+- `List<T>` → `list[T]` (Python 3.9+, preferred) or `List[T]` (typing module, for 3.8)
+- `Map<K,V>` → `dict[K, V]` (Python 3.9+, preferred) or `Dict[K, V]` (typing module)
+- `Optional<T>` → `Optional[T]` or `T | None` (Python 3.10+)
 - `void method()` → `def method() -> None:`
 - `@Override` → no equivalent (just document in docstring)
 - `implements Interface` → `(Protocol)` or `(ABC)`
 - `new Foo()` → `Foo()`
 - `try-with-resources` → `with` statement
 - `@Getter/@Setter` (Lombok) → `@property` or dataclass
+
+**Note:** Use built-in generic syntax (`list[T]`, `dict[K, V]`) since we target Python 3.9+.
 
 **Docker Client:**
 - `DockerClient` (Java) → `docker.DockerClient` (docker-py)
