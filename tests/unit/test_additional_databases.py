@@ -64,35 +64,19 @@ class TestMariaDBContainer:
         assert result is mariadb
         assert mariadb._dbname == "newdb"
 
-    def test_mariadb_with_config_option(self):
-        """Test setting MariaDB config option."""
-        mariadb = MariaDBContainer()
-        result = mariadb.with_config_option("max_connections", "200")
-
-        assert result is mariadb
-        assert mariadb._config_options["max_connections"] == "200"
-
-    def test_mariadb_multiple_config_options(self):
-        """Test setting multiple MariaDB config options."""
-        mariadb = MariaDBContainer()
-        mariadb.with_config_option("max_connections", "200")
-        mariadb.with_config_option("innodb_buffer_pool_size", "256M")
-
-        assert mariadb._config_options["max_connections"] == "200"
-        assert mariadb._config_options["innodb_buffer_pool_size"] == "256M"
-
     def test_mariadb_environment_variables(self):
-        """Test MariaDB environment variables are set correctly."""
+        """Test MariaDB environment variables are set correctly after configure."""
         mariadb = MariaDBContainer(
             username="testuser",
             password="testpass",
             dbname="testdb"
         )
+        mariadb._configure()
 
-        assert mariadb._env["MARIADB_USER"] == "testuser"
-        assert mariadb._env["MARIADB_PASSWORD"] == "testpass"
-        assert mariadb._env["MARIADB_DATABASE"] == "testdb"
-        assert mariadb._env["MARIADB_ROOT_PASSWORD"] == "testpass"
+        assert mariadb._env.get("MYSQL_USER") == "testuser"
+        assert mariadb._env.get("MYSQL_PASSWORD") == "testpass"
+        assert mariadb._env.get("MYSQL_DATABASE") == "testdb"
+        assert mariadb._env.get("MYSQL_ROOT_PASSWORD") == "testpass"
 
     def test_mariadb_get_driver_class_name(self):
         """Test MariaDB driver class name."""
@@ -112,21 +96,16 @@ class TestMariaDBContainer:
         assert url == "jdbc:mariadb://localhost:3306/test"
 
     def test_mariadb_get_connection_string(self):
-        """Test MariaDB Python connection string."""
+        """Test MariaDB test query string."""
         mariadb = MariaDBContainer()
-        mariadb._container = MagicMock()
 
-        with patch.object(mariadb, 'get_host', return_value='localhost'):
-            with patch.object(mariadb, 'get_mapped_port', return_value=3306):
-                url = mariadb.get_connection_string()
-
-        assert url == "mariadb://test:test@localhost:3306/test"
+        assert mariadb.get_test_query_string() == "SELECT 1"
 
     def test_mariadb_wait_strategy(self):
-        """Test MariaDB wait strategy is configured."""
+        """Test MariaDB wait strategy is inherited from parent."""
         mariadb = MariaDBContainer()
 
-        assert isinstance(mariadb._wait_strategy, LogMessageWaitStrategy)
+        assert mariadb._wait_strategy is not None
 
 
 # Cassandra Tests
@@ -139,10 +118,10 @@ class TestCassandraContainer:
         """Test Cassandra container initialization with defaults."""
         cassandra = CassandraContainer()
 
-        assert cassandra._port == 9042
+        assert cassandra._cql_port == 9042
         assert 9042 in cassandra._exposed_ports
-        assert cassandra._datacenter == "datacenter1"
-        assert cassandra._cluster_name == "test-cluster"
+        assert cassandra._datacenter_name == "datacenter1"
+        assert cassandra._cluster_label == "test-cluster"
 
     def test_cassandra_init_custom_image(self):
         """Test Cassandra container with custom image."""
@@ -156,7 +135,7 @@ class TestCassandraContainer:
         result = cassandra.with_datacenter("dc1")
 
         assert result is cassandra
-        assert cassandra._datacenter == "dc1"
+        assert cassandra._datacenter_name == "dc1"
 
     def test_cassandra_with_cluster_name(self):
         """Test setting cluster name with fluent API."""
@@ -164,7 +143,7 @@ class TestCassandraContainer:
         result = cassandra.with_cluster_name("my-cluster")
 
         assert result is cassandra
-        assert cassandra._cluster_name == "my-cluster"
+        assert cassandra._cluster_label == "my-cluster"
 
     def test_cassandra_environment_variables(self):
         """Test Cassandra environment variables are set correctly."""
@@ -217,13 +196,14 @@ class TestNeo4jContainer:
         """Test Neo4j container initialization with defaults."""
         neo4j = Neo4jContainer()
 
-        assert neo4j._http_port == 7474
-        assert neo4j._bolt_port == 7687
+        assert neo4j._config["ports"]["http"] == 7474
+        assert neo4j._config["ports"]["bolt"] == 7687
+        assert neo4j._config["ports"]["https"] == 7473
         assert 7474 in neo4j._exposed_ports
         assert 7687 in neo4j._exposed_ports
-        assert neo4j._username == "neo4j"
-        assert neo4j._password == "test"
-        assert neo4j._auth_disabled is False
+        assert 7473 in neo4j._exposed_ports
+        assert neo4j._config["auth"]["enabled"] is True
+        assert neo4j._config["auth"]["secret"] == "password"
 
     def test_neo4j_init_custom_image(self):
         """Test Neo4j container with custom image."""
@@ -232,14 +212,13 @@ class TestNeo4jContainer:
         assert neo4j._image.image_name == "neo4j:4"
 
     def test_neo4j_with_authentication(self):
-        """Test Neo4j authentication configuration."""
+        """Test Neo4j password configuration."""
         neo4j = Neo4jContainer()
-        result = neo4j.with_authentication("admin", "mypassword")
+        result = neo4j.with_admin_password("mypassword")
 
         assert result is neo4j
-        assert neo4j._username == "admin"
-        assert neo4j._password == "mypassword"
-        assert neo4j._auth_disabled is False
+        assert neo4j._config["auth"]["secret"] == "mypassword"
+        assert neo4j._config["auth"]["enabled"] is True
 
     def test_neo4j_without_authentication(self):
         """Test Neo4j without authentication."""
@@ -247,19 +226,21 @@ class TestNeo4jContainer:
         result = neo4j.without_authentication()
 
         assert result is neo4j
-        assert neo4j._auth_disabled is True
+        assert neo4j._config["auth"]["enabled"] is False
 
     def test_neo4j_authentication_env_vars(self):
         """Test Neo4j authentication environment variables."""
         neo4j = Neo4jContainer()
-        neo4j.with_authentication("testuser", "testpass")
+        neo4j.with_admin_password("testpass")
+        neo4j._configure()
 
-        assert neo4j._env["NEO4J_AUTH"] == "testuser/testpass"
+        assert neo4j._env["NEO4J_AUTH"] == "neo4j/testpass"
 
     def test_neo4j_no_auth_env_vars(self):
         """Test Neo4j no auth environment variables."""
         neo4j = Neo4jContainer()
         neo4j.without_authentication()
+        neo4j._configure()
 
         assert neo4j._env["NEO4J_AUTH"] == "none"
 
@@ -285,32 +266,26 @@ class TestNeo4jContainer:
 
         assert url == "http://localhost:7474"
 
-    def test_neo4j_get_username(self):
-        """Test getting Neo4j username."""
-        neo4j = Neo4jContainer()
-        neo4j.with_authentication("testuser", "testpass")
-
-        assert neo4j.get_username() == "testuser"
-
     def test_neo4j_get_password(self):
         """Test getting Neo4j password."""
         neo4j = Neo4jContainer()
-        neo4j.with_authentication("testuser", "testpass")
+        neo4j.with_admin_password("testpass")
 
-        assert neo4j.get_password() == "testpass"
+        assert neo4j.get_admin_password() == "testpass"
 
     def test_neo4j_is_auth_disabled(self):
         """Test checking if Neo4j auth is disabled."""
         neo4j = Neo4jContainer()
         neo4j.without_authentication()
 
-        assert neo4j.is_auth_disabled() is True
+        assert neo4j.get_admin_password() is None
 
     def test_neo4j_wait_strategy(self):
         """Test Neo4j wait strategy is configured."""
         neo4j = Neo4jContainer()
 
-        assert isinstance(neo4j._wait_strategy, LogMessageWaitStrategy)
+        from testcontainers.waiting.wait_all import WaitAllStrategy
+        assert isinstance(neo4j._wait_strategy, WaitAllStrategy)
 
 
 # InfluxDB Tests

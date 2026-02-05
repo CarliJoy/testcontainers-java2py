@@ -1,134 +1,73 @@
-"""
-Cassandra container implementation.
-
-This module provides a container for Apache Cassandra NoSQL databases.
-
-Java source:
-https://github.com/testcontainers/testcontainers-java/blob/main/modules/cassandra/src/main/java/org/testcontainers/containers/CassandraContainer.java
-"""
+"""Cassandra NoSQL database container wrapper."""
 
 from __future__ import annotations
-
 from testcontainers.core.generic_container import GenericContainer
 from testcontainers.waiting.log import LogMessageWaitStrategy
 
 
 class CassandraContainer(GenericContainer):
-    """
-    Cassandra database container.
+    """Wrapper for Cassandra 3.11.2 NoSQL database with CQL protocol."""
 
-    This container starts a Cassandra NoSQL database instance.
-
-    Java source:
-    https://github.com/testcontainers/testcontainers-java/blob/main/modules/cassandra/src/main/java/org/testcontainers/containers/CassandraContainer.java
-
-    Example:
-        >>> with CassandraContainer() as cassandra:
-        ...     contact_points = cassandra.get_contact_points()
-        ...     # Connect to Cassandra
-
-        >>> # Custom configuration
-        >>> cassandra = CassandraContainer("cassandra:5")
-        >>> cassandra.with_datacenter("dc1")
-        >>> cassandra.with_cluster_name("test-cluster")
-        >>> cassandra.start()
-    """
-
-    # Default configuration
-    DEFAULT_IMAGE = "cassandra:5"
-    DEFAULT_PORT = 9042
-    DEFAULT_DATACENTER = "datacenter1"
-    DEFAULT_CLUSTER_NAME = "test-cluster"
-
-    def __init__(self, image: str = DEFAULT_IMAGE):
-        """
-        Initialize a Cassandra container.
-
-        Args:
-            image: Docker image name (default: cassandra:5)
-        """
+    def __init__(self, image: str = "cassandra:3.11.2"):
         super().__init__(image)
+        
+        # CQL native transport port
+        self._cql_port = 9042
+        
+        # Cluster topology defaults
+        self._datacenter_name = "datacenter1"
+        self._cluster_label = "test-cluster"
+        
+        # Fixed authentication
+        self._auth_user = "cassandra"
+        self._auth_pass = "cassandra"
+        
+        self.with_exposed_ports(self._cql_port)
+        
+        # JVM and cluster environment
+        jvm_opts = "-Dcassandra.skip_wait_for_gossip_to_settle=0 -Dcassandra.initial_token=0"
+        self.with_env("JVM_OPTS", jvm_opts)
+        self.with_env("HEAP_NEWSIZE", "128M")
+        self.with_env("MAX_HEAP_SIZE", "1024M")
+        self.with_env("CASSANDRA_SNITCH", "GossipingPropertyFileSnitch")
+        self.with_env("CASSANDRA_ENDPOINT_SNITCH", "GossipingPropertyFileSnitch")
+        self.with_env("CASSANDRA_DC", self._datacenter_name)
+        
+        # Wait for ready state
+        self.waiting_for(LogMessageWaitStrategy().with_regex(r".*Startup complete.*"))
 
-        self._port = self.DEFAULT_PORT
-        self._datacenter = self.DEFAULT_DATACENTER
-        self._cluster_name = self.DEFAULT_CLUSTER_NAME
-
-        # Expose Cassandra CQL port
-        self.with_exposed_ports(self._port)
-
-        # Set default environment variables
-        self.with_env("CASSANDRA_DC", self._datacenter)
-        self.with_env("CASSANDRA_CLUSTER_NAME", self._cluster_name)
-
-        # Wait for Cassandra to be ready
-        # Cassandra logs "Startup complete" when ready
-        self.waiting_for(
-            LogMessageWaitStrategy()
-            .with_regex(r".*Startup complete.*")
-        )
-
-    def with_datacenter(self, datacenter: str) -> CassandraContainer:
-        """
-        Set the Cassandra datacenter name (fluent API).
-
-        Args:
-            datacenter: Datacenter name
-
-        Returns:
-            This container instance
-        """
-        self._datacenter = datacenter
-        self.with_env("CASSANDRA_DC", datacenter)
+    def with_datacenter(self, dc_name: str) -> CassandraContainer:
+        """Configure datacenter identifier."""
+        self._datacenter_name = dc_name
+        self.with_env("CASSANDRA_DC", dc_name)
         return self
 
-    def with_cluster_name(self, cluster_name: str) -> CassandraContainer:
-        """
-        Set the Cassandra cluster name (fluent API).
-
-        Args:
-            cluster_name: Cluster name
-
-        Returns:
-            This container instance
-        """
-        self._cluster_name = cluster_name
-        self.with_env("CASSANDRA_CLUSTER_NAME", cluster_name)
+    def with_cluster_name(self, cluster_id: str) -> CassandraContainer:
+        """Configure cluster identifier."""
+        self._cluster_label = cluster_id
+        self.with_env("CASSANDRA_CLUSTER_NAME", cluster_id)
         return self
 
     def get_contact_points(self) -> str:
-        """
-        Get the Cassandra contact points (host:port).
-
-        Returns:
-            Contact points in format: host:port
-        """
-        host = self.get_host()
-        port = self.get_port()
-        return f"{host}:{port}"
+        """Build contact point connection string."""
+        return f"{self.get_host()}:{self.get_mapped_port(self._cql_port)}"
 
     def get_port(self) -> int:
-        """
-        Get the exposed Cassandra port number on the host.
-
-        Returns:
-            Host port number mapped to the Cassandra port
-        """
-        return self.get_mapped_port(self._port)
+        """Retrieve mapped CQL port."""
+        return self.get_mapped_port(self._cql_port)
 
     def get_datacenter(self) -> str:
-        """
-        Get the Cassandra datacenter name.
-
-        Returns:
-            Datacenter name
-        """
-        return self._datacenter
+        """Retrieve configured datacenter."""
+        return self._datacenter_name
 
     def get_cluster_name(self) -> str:
-        """
-        Get the Cassandra cluster name.
-
-        Returns:
-            Cluster name
-        """
-        return self._cluster_name
+        """Retrieve configured cluster name."""
+        return self._cluster_label
+    
+    def get_username(self) -> str:
+        """Retrieve default username."""
+        return self._auth_user
+    
+    def get_password(self) -> str:
+        """Retrieve default password."""
+        return self._auth_pass

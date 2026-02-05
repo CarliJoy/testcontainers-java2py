@@ -1,170 +1,103 @@
-"""
-Neo4j container implementation.
-
-This module provides a container for Neo4j graph databases.
-
-Java source:
-https://github.com/testcontainers/testcontainers-java/blob/main/modules/neo4j/src/main/java/org/testcontainers/containers/Neo4jContainer.java
-"""
+"""Neo4j graph database container wrapper."""
 
 from __future__ import annotations
-
+from typing import Set
 from testcontainers.core.generic_container import GenericContainer
 from testcontainers.waiting.log import LogMessageWaitStrategy
+from testcontainers.waiting.http import HttpWaitStrategy
+from testcontainers.waiting.wait_all import WaitAllStrategy
 
 
 class Neo4jContainer(GenericContainer):
-    """
-    Neo4j graph database container.
+    """Wrapper providing Neo4j 4.4 graph database with configurable auth and plugins."""
 
-    This container starts a Neo4j graph database instance with authentication.
-
-    Java source:
-    https://github.com/testcontainers/testcontainers-java/blob/main/modules/neo4j/src/main/java/org/testcontainers/containers/Neo4jContainer.java
-
-    Example:
-        >>> with Neo4jContainer() as neo4j:
-        ...     bolt_url = neo4j.get_bolt_url()
-        ...     http_url = neo4j.get_http_url()
-        ...     # Connect to Neo4j
-
-        >>> # Custom configuration
-        >>> neo4j = Neo4jContainer("neo4j:5")
-        >>> neo4j.with_authentication("neo4j", "mypassword")
-        >>> neo4j.start()
-        >>> bolt_url = neo4j.get_bolt_url()
-    """
-
-    # Default configuration
-    DEFAULT_IMAGE = "neo4j:5"
-    DEFAULT_HTTP_PORT = 7474
-    DEFAULT_BOLT_PORT = 7687
-    DEFAULT_USERNAME = "neo4j"
-    DEFAULT_PASSWORD = "test"
-
-    def __init__(self, image: str = DEFAULT_IMAGE):
-        """
-        Initialize a Neo4j container.
-
-        Args:
-            image: Docker image name (default: neo4j:5)
-        """
+    def __init__(self, image: str = "neo4j:4.4"):
         super().__init__(image)
+        
+        # Store configuration state
+        self._config = {
+            "ports": {"bolt": 7687, "http": 7474, "https": 7473},
+            "auth": {"enabled": True, "secret": "password"},
+            "extensions": set(),
+        }
+        
+        # Open network ports
+        ports_to_expose = [
+            self._config["ports"]["bolt"],
+            self._config["ports"]["http"],
+            self._config["ports"]["https"],
+        ]
+        self.with_exposed_ports(*ports_to_expose)
+        
+        # Build combined readiness check
+        bolt_pattern = f".*Bolt enabled on .*:{self._config['ports']['bolt']}\\.\n"
+        log_wait = LogMessageWaitStrategy().with_regex(bolt_pattern)
+        http_wait = HttpWaitStrategy().for_port(self._config["ports"]["http"]).for_status_code(200)
+        combined = WaitAllStrategy()
+        combined.with_strategy(log_wait)
+        combined.with_strategy(http_wait)
+        self.waiting_for(combined)
 
-        self._http_port = self.DEFAULT_HTTP_PORT
-        self._bolt_port = self.DEFAULT_BOLT_PORT
-        self._username = self.DEFAULT_USERNAME
-        self._password = self.DEFAULT_PASSWORD
-        self._auth_disabled = False
+    def _configure(self) -> None:
+        # Handle authentication configuration
+        if self._config["auth"]["enabled"] and self._config["auth"]["secret"]:
+            auth_string = f"neo4j/{self._config['auth']['secret']}"
+        else:
+            auth_string = "none"
+        self.with_env("NEO4J_AUTH", auth_string)
+        
+        # Handle extension plugins
+        if self._config["extensions"]:
+            plugin_names = list(self._config["extensions"])
+            formatted_list = "[" + ",".join(f'"{name}"' for name in plugin_names) + "]"
+            self.with_env("NEO4JLABS_PLUGINS", formatted_list)
 
-        # Expose Neo4j ports
-        self.with_exposed_ports(self._http_port, self._bolt_port)
-
-        # Set default authentication
-        self.with_env("NEO4J_AUTH", f"{self._username}/{self._password}")
-
-        # Wait for Neo4j to be ready
-        # Neo4j logs "Remote interface available" or "Started" when ready
-        self.waiting_for(
-            LogMessageWaitStrategy()
-            .with_regex(r".*(Remote interface available|Started).*")
-        )
-
-    def with_authentication(
-        self,
-        username: str,
-        password: str,
-    ) -> Neo4jContainer:
-        """
-        Enable Neo4j authentication with custom credentials (fluent API).
-
-        Args:
-            username: Neo4j username
-            password: Neo4j password
-
-        Returns:
-            This container instance
-        """
-        self._username = username
-        self._password = password
-        self._auth_disabled = False
-        self.with_env("NEO4J_AUTH", f"{username}/{password}")
+    def with_admin_password(self, secret: str | None) -> Neo4jContainer:
+        """Configure admin credentials (None disables authentication)."""
+        if secret:
+            self._config["auth"]["enabled"] = True
+            self._config["auth"]["secret"] = secret
+        else:
+            self._config["auth"]["enabled"] = False
+            self._config["auth"]["secret"] = None
         return self
 
     def without_authentication(self) -> Neo4jContainer:
-        """
-        Disable Neo4j authentication (fluent API).
+        """Disable authentication mechanism."""
+        self._config["auth"]["enabled"] = False
+        self._config["auth"]["secret"] = None
+        return self
 
-        Returns:
-            This container instance
-        """
-        self._auth_disabled = True
-        self.with_env("NEO4J_AUTH", "none")
+    def with_labs_plugins(self, *names: str) -> Neo4jContainer:
+        """Register Neo4j Labs extensions (like APOC, GDS)."""
+        self._config["extensions"].update(names)
+        return self
+
+    def with_neo4j_config(self, setting_name: str, setting_value: str) -> Neo4jContainer:
+        """Apply Neo4j configuration parameter (auto-converts to env format)."""
+        # Transform config key to environment variable name
+        env_var = "NEO4J_" + setting_name.replace("_", "__").replace(".", "_")
+        self.with_env(env_var, setting_value)
         return self
 
     def get_bolt_url(self) -> str:
-        """
-        Get the Neo4j Bolt protocol connection URL.
-
-        Returns:
-            Bolt URL in format: bolt://host:port
-        """
-        host = self.get_host()
-        port = self.get_mapped_port(self._bolt_port)
-        return f"bolt://{host}:{port}"
+        """Build Bolt protocol connection URI."""
+        h = self.get_host()
+        p = self.get_mapped_port(self._config["ports"]["bolt"])
+        return f"bolt://{h}:{p}"
 
     def get_http_url(self) -> str:
-        """
-        Get the Neo4j HTTP API URL.
+        """Build HTTP API endpoint URI."""
+        h = self.get_host()
+        p = self.get_mapped_port(self._config["ports"]["http"])
+        return f"http://{h}:{p}"
 
-        Returns:
-            HTTP URL in format: http://host:port
-        """
-        host = self.get_host()
-        port = self.get_mapped_port(self._http_port)
-        return f"http://{host}:{port}"
+    def get_https_url(self) -> str:
+        """Build HTTPS API endpoint URI."""
+        h = self.get_host()
+        p = self.get_mapped_port(self._config["ports"]["https"])
+        return f"https://{h}:{p}"
 
-    def get_port(self) -> int:
-        """
-        Get the exposed Bolt port number on the host.
-
-        Returns:
-            Host port number mapped to the Bolt port
-        """
-        return self.get_mapped_port(self._bolt_port)
-
-    def get_http_port(self) -> int:
-        """
-        Get the exposed HTTP port number on the host.
-
-        Returns:
-            Host port number mapped to the HTTP port
-        """
-        return self.get_mapped_port(self._http_port)
-
-    def get_username(self) -> str:
-        """
-        Get the Neo4j username.
-
-        Returns:
-            Neo4j username
-        """
-        return self._username
-
-    def get_password(self) -> str:
-        """
-        Get the Neo4j password.
-
-        Returns:
-            Neo4j password
-        """
-        return self._password
-
-    def is_auth_disabled(self) -> bool:
-        """
-        Check if authentication is disabled.
-
-        Returns:
-            True if authentication is disabled, False otherwise
-        """
-        return self._auth_disabled
+    def get_admin_password(self) -> str | None:
+        """Retrieve configured admin secret."""
+        return self._config["auth"]["secret"] if self._config["auth"]["enabled"] else None
