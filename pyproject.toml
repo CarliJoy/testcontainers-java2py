@@ -30,6 +30,8 @@ dependencies = [
     "docker>=6.0.0,<8.0.0",
     # Type checking support
     "typing-extensions>=4.0.0; python_version < '3.11'",
+    # TOML configuration support
+    "tomli>=2.0.0; python_version < '3.11'",
 ]
 
 [project.optional-dependencies]

@@ -14,6 +14,16 @@ from testcontainers.images.policies import (
 )
 from testcontainers.images.pull_policy import PullPolicy
 from testcontainers.images.remote_image import RemoteDockerImage
+from testcontainers.images.substitutor import (
+    ImageNameSubstitutor,
+    NoOpImageNameSubstitutor,
+    PrefixingImageNameSubstitutor,
+    ConfigurableImageNameSubstitutor,
+    ChainImageNameSubstitutor,
+    get_image_name_substitutor,
+    set_global_substitutor,
+    reset_global_substitutor,
+)
 
 __all__ = [
     "ImagePullPolicy",
@@ -24,4 +34,12 @@ __all__ = [
     "AgeBasedPullPolicy",
     "PullPolicy",
     "RemoteDockerImage",
+    "ImageNameSubstitutor",
+    "NoOpImageNameSubstitutor",
+    "PrefixingImageNameSubstitutor",
+    "ConfigurableImageNameSubstitutor",
+    "ChainImageNameSubstitutor",
+    "get_image_name_substitutor",
+    "set_global_substitutor",
+    "reset_global_substitutor",
 ]

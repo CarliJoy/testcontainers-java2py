@@ -17,6 +17,7 @@ from docker.errors import ImageNotFound, APIError
 from testcontainers.core.docker_client import DockerClientFactory
 from testcontainers.images.image_pull_policy import ImagePullPolicy
 from testcontainers.images.pull_policy import PullPolicy
+from testcontainers.images.substitutor import get_image_name_substitutor
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,13 @@ class RemoteDockerImage:
             pull_policy: Policy for determining when to pull (defaults to DefaultPullPolicy)
             docker_client: Docker client to use (defaults to lazy client)
         """
-        self._image_name = image_name
+        # Apply image name substitution
+        substitutor = get_image_name_substitutor()
+        self._image_name = substitutor.substitute(image_name)
+        
+        if self._image_name != image_name:
+            logger.info(f"Image name substituted: {image_name} -> {self._image_name}")
+        
         self._pull_policy = pull_policy or PullPolicy.default_policy()
         self._docker_client = docker_client or DockerClientFactory.lazy_client()
         self._resolved_image_name: Optional[str] = None
