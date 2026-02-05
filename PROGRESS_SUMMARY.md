@@ -10,14 +10,14 @@ This document tracks the progress of converting the Testcontainers Java library 
 
 | Metric | Count |
 |--------|-------|
-| **Python Files Created** | 16 |
-| **Lines of Python Code** | ~2,500 |
-| **Test Files** | 7 |
-| **Test Cases** | 123 |
+| **Python Files Created** | 19 |
+| **Lines of Python Code** | ~3,500 |
+| **Test Files** | 8 |
+| **Test Cases** | 148 |
 | **Test Pass Rate** | 100% |
-| **Java Files Converted** | ~30 |
-| **Original Java Lines** | ~5,000+ |
-| **Code Reduction** | ~50% |
+| **Java Files Converted** | ~45 |
+| **Original Java Lines** | ~6,500+ |
+| **Code Reduction** | ~45% |
 
 ## ✅ Implemented Features
 
@@ -37,6 +37,28 @@ This document tracks the progress of converting the Testcontainers Java library 
 - [x] **BindMode** - Volume mount modes (RO/RW)
 - [x] **SelinuxContext** - SELinux context modes
 - [x] **InternetProtocol** - TCP/UDP protocol handling
+
+### Networking
+- [x] **Network** - Custom Docker network management
+- [x] **NetworkImpl** - Network implementation with lazy creation
+- [x] **SHARED** - Singleton shared network
+- [x] **Network Aliases** - Container network aliases
+- [x] **Network Context Manager** - Automatic cleanup
+
+### Container Dependencies
+- [x] **depends_on()** - Container startup dependencies
+- [x] **Automatic Ordering** - Dependencies started first
+
+### File Operations
+- [x] **with_copy_file_to_container()** - Queue file copying
+- [x] **copy_file_to_container()** - Copy files/directories to container
+- [x] **copy_file_from_container()** - Copy files/directories from container
+- [x] **TAR-based implementation** - Docker API standard
+
+### Container Customization
+- [x] **with_create_container_modifier()** - Custom container configuration
+- [x] **Modifier Chaining** - Multiple modifiers support
+- [x] **SocatContainer** - TCP proxy for port exposure
 
 ### Wait Strategies
 - [x] **WaitStrategy Protocol** - Base interface
@@ -73,10 +95,7 @@ This document tracks the progress of converting the Testcontainers Java library 
 
 ### Core Container Features
 - [ ] **Container Reuse** - Singleton containers across tests
-- [ ] **Container Dependencies** - DependsOn pattern
-- [ ] **Network Customization** - Custom networks, aliases
 - [ ] **Link Containers** - Legacy container linking
-- [ ] **File Copying** - Copy files to/from container
 - [ ] **FixedHostPortGenericContainer** - Fixed port mapping
 - [ ] **SocatContainer** - Port forwarding helper
 - [ ] **Container Modification** - Modify running containers
