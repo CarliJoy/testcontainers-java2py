@@ -39,6 +39,10 @@ __all__ = [
     "WeaviateContainer",
     "MockServerContainer",
     "ToxiproxyContainer",
+    "MSSQLServerContainer",
+    "OracleFreeContainer",
+    "RedpandaContainer",
+    "TypesenseContainer",
 ]
 
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
@@ -71,3 +75,7 @@ from testcontainers.modules.qdrant import QdrantContainer
 from testcontainers.modules.weaviate import WeaviateContainer
 from testcontainers.modules.mockserver import MockServerContainer
 from testcontainers.modules.toxiproxy import ToxiproxyContainer
+from testcontainers.modules.mssqlserver import MSSQLServerContainer
+from testcontainers.modules.oracle_free import OracleFreeContainer
+from testcontainers.modules.redpanda import RedpandaContainer
+from testcontainers.modules.typesense import TypesenseContainer
