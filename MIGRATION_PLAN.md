@@ -317,13 +317,15 @@
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Create new Python project
-# Note: Use underscores for package/import names
+# Note: Use underscores or simple names for package/import names
 # (hyphens are only allowed in distribution names, not import names)
+# 'testcontainers' (no hyphens/underscores) is valid, 'testcontainers_python' is valid
 mkdir testcontainers_python
 cd testcontainers_python
-uv init --lib  # Creates package structure with 'testcontainers_python' as package name
+uv init --lib  # Creates project structure
 
-# Configure in pyproject.toml to use 'testcontainers' as the import name if desired
+# The actual import package name is configured in pyproject.toml
+# Edit pyproject.toml to set name = "testcontainers" if you want simpler imports
 
 # Create virtual environment
 uv venv
@@ -460,9 +462,10 @@ ruff format .
 - `String` → `str`
 - `int`, `Integer` → `int`
 - `boolean` → `bool`
-- `List<T>` → `list[T]` (Python 3.9+ with `from __future__ import annotations`)
-- `Map<K, V>` → `dict[K, V]` (Python 3.9+ with `from __future__ import annotations`)
-- `Optional<T>` → `Optional[T]` or `T | None` (Python 3.10+)
+- `List<T>` → `list[T]` (use `from __future__ import annotations` for Python 3.9, or use `List[T]` from typing)
+- `Map<K, V>` → `dict[K, V]` (use `from __future__ import annotations` for Python 3.9, or use `Dict[K, V]` from typing)
+- `Optional<T>` → `Optional[T]` from typing module
+- `T | None` → Available in Python 3.10+ (or with `from __future__ import annotations` in 3.9)
 - `void method()` → `def method() -> None:`
 - `@Override` → no equivalent (just document in docstring)
 - `implements Interface` → `(Protocol)` or `(ABC)`
@@ -470,7 +473,10 @@ ruff format .
 - `try-with-resources` → `with` statement
 - `@Getter/@Setter` (Lombok) → `@property` or dataclass
 
-**Note:** For Python 3.9, add `from __future__ import annotations` at the top of each file to use built-in generic syntax (`list[T]`, `dict[K, V]`). Python 3.10+ doesn't require this import.
+**Typing Strategy:**
+- Add `from __future__ import annotations` at the top of each file for forward-compatible annotations
+- This allows using modern syntax (`list[str]`, `dict[str, int]`) even in Python 3.9
+- Use `Optional[T]` from typing module for optional types (or `T | None` syntax with the __future__ import)
 
 **Docker Client:**
 - `DockerClient` (Java) → `docker.DockerClient` (docker-py)
