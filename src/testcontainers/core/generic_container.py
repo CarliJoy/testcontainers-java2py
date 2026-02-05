@@ -97,6 +97,7 @@ class GenericContainer(Container["GenericContainer"], ContainerState, WaitStrate
         self._network: Optional[Network] = None
         self._network_aliases: list[str] = []
         self._privileged: bool = False
+        self._shm_size: Optional[int] = None  # Shared memory size in bytes
         
         # Dependencies
         self._dependencies: list[Container] = []
@@ -443,6 +444,10 @@ class GenericContainer(Container["GenericContainer"], ContainerState, WaitStrate
                 "privileged": self._privileged,
                 "detach": True,
             }
+            
+            # Add optional shared memory size
+            if self._shm_size is not None:
+                create_kwargs["shm_size"] = self._shm_size
             
             # Add network configuration
             if network:

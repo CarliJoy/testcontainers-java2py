@@ -31,6 +31,10 @@ __all__ = [
     "NATSContainer",
     "ActiveMQContainer",
     "ChromaDBContainer",
+    "ClickHouseContainer",
+    "CockroachDBContainer",
+    "BrowserWebDriverContainer",
+    "BrowserType",
 ]
 
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
@@ -56,3 +60,6 @@ from testcontainers.modules.pulsar import PulsarContainer
 from testcontainers.modules.nats import NATSContainer
 from testcontainers.modules.activemq import ActiveMQContainer
 from testcontainers.modules.chromadb import ChromaDBContainer
+from testcontainers.modules.clickhouse import ClickHouseContainer
+from testcontainers.modules.cockroachdb import CockroachDBContainer
+from testcontainers.modules.selenium import BrowserWebDriverContainer, BrowserType
