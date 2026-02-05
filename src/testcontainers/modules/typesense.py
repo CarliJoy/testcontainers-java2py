@@ -107,21 +107,6 @@ class TypesenseContainer(GenericContainer):
         super().start()
         return self
 
-    def get_http_port(self) -> str:
-        """
-        Get the exposed HTTP port as a string.
-
-        Returns:
-            HTTP port number as string
-
-        Raises:
-            RuntimeError: If container is not started
-        """
-        if not self._container:
-            raise RuntimeError("Container not started")
-
-        return str(self.get_mapped_port(self.DEFAULT_PORT))
-
     def get_port(self) -> int:
         """
         Get the exposed HTTP port as an integer.
