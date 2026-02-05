@@ -290,7 +290,7 @@ git clone https://github.com/testcontainers/testcontainers-python.git
 cd testcontainers-python
 uv venv
 source .venv/bin/activate  # Linux/macOS
-# On Windows: .venv\Scripts\activate.bat (cmd) or .venv/Scripts/activate (PowerShell)
+# On Windows: .venv\Scripts\activate.bat (cmd) or .venv\Scripts\Activate.ps1 (PowerShell)
 uv pip install -e ".[dev]"
 ```
 
