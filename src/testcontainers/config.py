@@ -94,6 +94,13 @@ class TestcontainersConfig:
             if "ryuk" not in self._config:
                 self._config["ryuk"] = {}
             self._config["ryuk"]["disabled"] = ryuk_disabled.lower() in ("true", "1", "yes")
+        
+        # Container reuse settings
+        if reuse_enable := os.getenv("TESTCONTAINERS_REUSE_ENABLE"):
+            if "reuse" not in self._config:
+                self._config["reuse"] = {}
+            self._config["reuse"]["enabled"] = reuse_enable.lower() in ("true", "1", "yes")
+            logger.debug(f"Loaded reuse setting from env: {reuse_enable}")
 
     def get(self, key: str, default: Any = None) -> Any:
         """
@@ -129,6 +136,20 @@ class TestcontainersConfig:
         """Get all configured image mappings."""
         mappings = self.get("image_mappings", {})
         return mappings if isinstance(mappings, dict) else {}
+    
+    def environment_supports_reuse(self) -> bool:
+        """
+        Check if the environment supports container reuse.
+        
+        Returns:
+            True if container reuse is enabled, False otherwise
+        """
+        return self.get("reuse.enabled", False)
+    
+    @classmethod
+    def get_instance(cls) -> TestcontainersConfig:
+        """Get the singleton instance."""
+        return cls()
 
     @classmethod
     def reset(cls) -> None:

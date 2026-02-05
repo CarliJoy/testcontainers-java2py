@@ -6,7 +6,11 @@ This module provides the main GenericContainer class for running Docker containe
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
+import os
+import stat
 import time
 from datetime import timedelta
 from typing import Optional, Any, Sequence, TYPE_CHECKING
@@ -51,6 +55,8 @@ class GenericContainer(Container["GenericContainer"], ContainerState, WaitStrate
     
     CONTAINER_RUNNING_TIMEOUT_SEC = 30
     INTERNAL_HOST_HOSTNAME = "host.testcontainers.internal"
+    HASH_LABEL = "org.testcontainers.hash"
+    COPIED_FILES_HASH_LABEL = "org.testcontainers.copied_files.hash"
     
     def __init__(
         self,
@@ -100,6 +106,10 @@ class GenericContainer(Container["GenericContainer"], ContainerState, WaitStrate
         
         # Container modifiers
         self._create_container_modifiers: list = []
+        
+        # Container reuse
+        self._should_be_reused: bool = False
+        self._reused: bool = False
         
         # Wait strategy
         self._wait_strategy: WaitStrategy = HostPortWaitStrategy()
@@ -336,6 +346,24 @@ class GenericContainer(Container["GenericContainer"], ContainerState, WaitStrate
         self._create_container_modifiers.append(modifier)
         return self
     
+    def with_reuse(self, reuse: bool) -> GenericContainer:
+        """
+        Enable or disable container reuse (fluent API).
+        
+        When enabled, the container will search for existing containers with matching
+        configuration and reuse them instead of creating new ones. This requires
+        TESTCONTAINERS_REUSE_ENABLE=true in the environment or [reuse] enabled=true
+        in testcontainers.toml.
+        
+        Args:
+            reuse: Whether to enable container reuse
+            
+        Returns:
+            This container instance
+        """
+        self._should_be_reused = reuse
+        return self
+    
     def waiting_for(self, wait_strategy: WaitStrategy) -> GenericContainer:
         """
         Set the wait strategy (fluent API).
@@ -429,22 +457,71 @@ class GenericContainer(Container["GenericContainer"], ContainerState, WaitStrate
                 if callable(modifier):
                     create_kwargs = modifier(create_kwargs) or create_kwargs
             
-            self._container = self._docker_client.containers.create(**create_kwargs)
+            # Check for container reuse
+            reused = False
+            if self._should_be_reused:
+                # Import config here to avoid circular import
+                from testcontainers.config import TestcontainersConfig
+                
+                if TestcontainersConfig.get_instance().environment_supports_reuse():
+                    # Add reuse labels
+                    copied_files_hash = self._hash_copied_files()
+                    create_kwargs["labels"][self.COPIED_FILES_HASH_LABEL] = copied_files_hash
+                    
+                    config_hash = self._hash_configuration(create_kwargs)
+                    
+                    # Try to find existing container
+                    existing_container_id = self._find_container_for_reuse(config_hash)
+                    
+                    if existing_container_id:
+                        # Reuse existing container
+                        logger.info(f"Reusing container with ID: {existing_container_id}")
+                        self._container = self._docker_client.containers.get(existing_container_id)
+                        self._container_id = existing_container_id
+                        reused = True
+                    else:
+                        # No existing container, add hash label for future reuse
+                        logger.debug(f"No reusable container found, will create new one with hash: {config_hash}")
+                        create_kwargs["labels"][self.HASH_LABEL] = config_hash
+                else:
+                    logger.debug("Container reuse requested but not supported by environment")
             
-            self._container_id = self._container.id
-            logger.info(f"Container created: {self._container_id}")
+            # Create new container if not reused
+            if not reused:
+                self._container = self._docker_client.containers.create(**create_kwargs)
+                self._container_id = self._container.id
+                logger.info(f"Container created: {self._container_id}")
+                
+                # Copy files to container before starting
+                for source, target in self._copy_to_container.items():
+                    logger.debug(f"Copying {source} to {target} in container")
+                    self.copy_file_to_container(source, target)
+                
+                # Call starting hook
+                container_info = self._container.attrs
+                self.container_is_starting(container_info, reused=False)
+                
+                # Start container
+                self._container.start()
+                logger.info(f"Container started: {self._container_id}")
+                
+                # Reload to get port mappings
+                self._container.reload()
+                
+                # Call started hook
+                container_info = self._container.attrs
+                self.container_is_started(container_info, reused=False)
+            else:
+                # Container was reused, just call hooks
+                container_info = self._container.attrs
+                self.container_is_starting(container_info, reused=True)
+                self.container_is_started(container_info, reused=True)
+                
+                # Reload to ensure we have latest info
+                self._container.reload()
             
-            # Copy files to container before starting
-            for source, target in self._copy_to_container.items():
-                logger.debug(f"Copying {source} to {target} in container")
-                self.copy_file_to_container(source, target)
-            
-            # Start container
-            self._container.start()
-            logger.info(f"Container started: {self._container_id}")
-            
-            # Reload to get port mappings
-            self._container.reload()
+            # Mark as reused for future reference
+            self._reused = reused
             
             # Wait for container to be ready
             logger.debug(f"Waiting for container to be ready")
@@ -455,8 +532,8 @@ class GenericContainer(Container["GenericContainer"], ContainerState, WaitStrate
             
         except Exception as e:
             logger.error(f"Failed to start container: {e}", exc_info=e)
-            # Cleanup on failure
-            if self._container:
+            # Cleanup on failure (but not if reused)
+            if self._container and not reused:
                 try:
                     self._container.remove(force=True)
                 except Exception:
@@ -704,3 +781,134 @@ class GenericContainer(Container["GenericContainer"], ContainerState, WaitStrate
             tar.extractall(path=target)
         
         logger.debug(f"Copied {source} from container {self._container_id} to {target}")
+    
+    def container_is_starting(self, container_info: dict[str, Any], reused: bool) -> None:
+        """
+        Hook called when container is starting (before start command).
+        
+        Override this method to perform custom actions when the container is starting.
+        
+        Args:
+            container_info: Container inspection information
+            reused: True if container is being reused, False if newly created
+        """
+        pass
+    
+    def container_is_started(self, container_info: dict[str, Any], reused: bool) -> None:
+        """
+        Hook called when container has started (after start command).
+        
+        Override this method to perform custom actions after the container has started.
+        
+        Args:
+            container_info: Container inspection information
+            reused: True if container was reused, False if newly created
+        """
+        pass
+    
+    def _hash_configuration(self, create_kwargs: dict[str, Any]) -> str:
+        """
+        Calculate hash of container configuration.
+        
+        Args:
+            create_kwargs: Container creation parameters
+            
+        Returns:
+            SHA-256 hash of the configuration
+        """
+        # Extract and normalize relevant configuration
+        config = {
+            "image": create_kwargs.get("image"),
+            "command": create_kwargs.get("command"),
+            "entrypoint": create_kwargs.get("entrypoint"),
+            "environment": sorted((k, v) for k, v in (create_kwargs.get("environment") or {}).items()),
+            "ports": sorted(str(k) for k in (create_kwargs.get("ports") or {}).keys()),
+            "volumes": sorted((k, v.get("bind"), v.get("mode")) for k, v in (create_kwargs.get("volumes") or {}).items()),
+            "working_dir": create_kwargs.get("working_dir"),
+            "privileged": create_kwargs.get("privileged"),
+            "network_mode": create_kwargs.get("network_mode"),
+            "network": create_kwargs.get("network"),
+            # Exclude name and labels from hash as they may vary
+        }
+        
+        # Convert to JSON and hash
+        config_json = json.dumps(config, sort_keys=True, default=str)
+        return hashlib.sha256(config_json.encode()).hexdigest()
+    
+    def _hash_copied_files(self) -> str:
+        """
+        Calculate hash of files to be copied to container.
+        
+        Returns:
+            SHA-256 hash of files configuration
+        """
+        if not self._copy_to_container:
+            return hashlib.sha256(b"").hexdigest()
+        
+        hasher = hashlib.sha256()
+        
+        # Sort for deterministic hashing
+        for source, target in sorted(self._copy_to_container.items()):
+            # Add target path
+            hasher.update(target.encode())
+            
+            # Add file content and metadata
+            if os.path.exists(source):
+                # Get file stats
+                file_stat = os.stat(source)
+                hasher.update(str(file_stat.st_mode).encode())
+                
+                if os.path.isfile(source):
+                    # Hash file content
+                    with open(source, "rb") as f:
+                        for chunk in iter(lambda: f.read(4096), b""):
+                            hasher.update(chunk)
+                elif os.path.isdir(source):
+                    # Hash directory contents recursively
+                    for root, dirs, files in os.walk(source):
+                        # Sort for deterministic order
+                        for name in sorted(dirs + files):
+                            path = os.path.join(root, name)
+                            rel_path = os.path.relpath(path, source)
+                            hasher.update(rel_path.encode())
+                            
+                            if os.path.isfile(path):
+                                # Hash file metadata
+                                file_stat = os.stat(path)
+                                hasher.update(str(file_stat.st_mode).encode())
+                                
+                                # Hash file content
+                                with open(path, "rb") as f:
+                                    for chunk in iter(lambda: f.read(4096), b""):
+                                        hasher.update(chunk)
+        
+        return hasher.hexdigest()
+    
+    def _find_container_for_reuse(self, config_hash: str) -> Optional[str]:
+        """
+        Find an existing container that can be reused.
+        
+        Args:
+            config_hash: Configuration hash to match
+            
+        Returns:
+            Container ID if found, None otherwise
+        """
+        try:
+            # Search for containers with matching hash label
+            filters = {
+                "label": [f"{self.HASH_LABEL}={config_hash}"],
+                "status": "running"
+            }
+            
+            containers = self._docker_client.containers.list(filters=filters)
+            
+            if containers:
+                container_id = containers[0].id
+                logger.info(f"Found reusable container: {container_id}")
+                return container_id
+            
+        except Exception as e:
+            logger.warning(f"Error searching for reusable container: {e}")
+        
+        return None
