@@ -62,6 +62,9 @@ all = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[project.entry-points.pytest11]
+testcontainers = "testcontainers.pytest.plugin"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
