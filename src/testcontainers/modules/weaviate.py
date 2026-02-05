@@ -66,7 +66,7 @@ class WeaviateContainer(GenericContainer):
         # Default environment variables
         # Enable anonymous access by default for easier testing
         self.with_env("AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED", "true")
-        
+
         # Set persistence path
         self.with_env("PERSISTENCE_DATA_PATH", self.DEFAULT_PERSISTENCE_PATH)
 
