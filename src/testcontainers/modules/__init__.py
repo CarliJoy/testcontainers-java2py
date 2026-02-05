@@ -21,6 +21,11 @@ __all__ = [
     "KafkaContainer",
     "ElasticsearchContainer",
     "RabbitMQContainer",
+    "NGINXContainer",
+    "LocalStackContainer",
+    "MinIOContainer",
+    "VaultContainer",
+    "MemcachedContainer",
 ]
 
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
@@ -36,3 +41,8 @@ from testcontainers.modules.couchdb import CouchDBContainer
 from testcontainers.modules.kafka import KafkaContainer
 from testcontainers.modules.elasticsearch import ElasticsearchContainer
 from testcontainers.modules.rabbitmq import RabbitMQContainer
+from testcontainers.modules.nginx import NGINXContainer
+from testcontainers.modules.localstack import LocalStackContainer
+from testcontainers.modules.minio import MinIOContainer
+from testcontainers.modules.vault import VaultContainer
+from testcontainers.modules.memcached import MemcachedContainer
