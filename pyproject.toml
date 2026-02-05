@@ -26,15 +26,33 @@ classifiers = [
 ]
 
 dependencies = [
-    "docker>=6.0.0",
+    # Docker client library
+    "docker>=6.0.0,<8.0.0",
+    # Type checking support
+    "typing-extensions>=4.0.0; python_version < '3.11'",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
-    "mypy>=1.0.0",
-    "ruff>=0.1.0",
+    # Testing
+    "pytest>=7.0.0,<9.0.0",
+    "pytest-cov>=4.0.0,<6.0.0",
+    "pytest-mock>=3.10.0",
+    "pytest-timeout>=2.1.0",
+    # Type checking
+    "mypy>=1.0.0,<2.0.0",
+    "types-docker>=6.0.0",
+    # Linting and formatting
+    "ruff>=0.1.0,<0.3.0",
+    "black>=23.0.0,<25.0.0",
+    # Documentation
+    "sphinx>=6.0.0,<8.0.0",
+    "sphinx-rtd-theme>=1.2.0",
+]
+
+# For easy installation of all dev dependencies
+all = [
+    "testcontainers-python[dev]",
 ]
 
 [tool.setuptools.packages.find]
