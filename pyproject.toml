@@ -37,24 +37,36 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    # Testing
+test = [
+    # Testing frameworks
     "pytest>=7.0.0,<9.0.0",
     "pytest-cov>=4.0.0,<6.0.0",
     "pytest-mock>=3.10.0",
     "pytest-timeout>=2.1.0",
+]
+
+lint = [
     # Type checking
     "mypy>=1.0.0,<2.0.0",
     "types-docker>=6.0.0",
+    "types-PyYAML>=6.0.0",
     # Linting and formatting
     "ruff>=0.1.0,<0.3.0",
     "black>=23.0.0,<25.0.0",
-    # Documentation
+]
+
+docs = [
+    # Documentation generation
     "sphinx>=6.0.0,<8.0.0",
     "sphinx-rtd-theme>=1.2.0",
 ]
 
-# For easy installation of all dev dependencies
+dev = [
+    # Include all development dependencies
+    "testcontainers-python[test,lint,docs]",
+]
+
+# For easy installation of all dev dependencies (backward compat)
 all = [
     "testcontainers-python[dev]",
 ]

@@ -1,7 +1,5 @@
 """
-Pytest fixture support for Test
-
-containers.
+Pytest fixture support for Testcontainers.
 
 Provides factory functions for creating pytest fixtures that manage
 container lifecycle automatically.
@@ -13,9 +11,10 @@ from __future__ import annotations
 
 import functools
 import logging
-from typing import Any, Callable
+from typing import Any, Callable, Iterator, TYPE_CHECKING
 
-import pytest
+if TYPE_CHECKING:
+    import pytest
 
 from testcontainers.core import GenericContainer
 
@@ -25,7 +24,7 @@ logger = logging.getLogger(__name__)
 def container_fixture(
     image: str,
     **container_kwargs: Any,
-) -> Callable[..., GenericContainer]:
+) -> Callable[..., Any]:
     """
     Factory function to create pytest fixtures for containers.
     
@@ -63,6 +62,9 @@ def container_fixture(
             # Use database at localhost:{port}
         ```
     """
+    # Import pytest here to avoid issues during type checking
+    import pytest as pytest_module
+    
     # Extract pytest-specific kwargs
     scope = container_kwargs.pop("scope", "function")
     name = container_kwargs.pop("name", None)
@@ -76,8 +78,8 @@ def container_fixture(
     network_aliases = container_kwargs.pop("network_aliases", None)
     reuse = container_kwargs.pop("reuse", False)
     
-    @pytest.fixture(scope=scope, name=name)
-    def _container_fixture() -> GenericContainer:
+    @pytest_module.fixture(scope=scope, name=name)
+    def _container_fixture() -> Iterator[GenericContainer]:
         """Pytest fixture that manages container lifecycle."""
         logger.info(f"Starting container fixture: {image}")
         
@@ -130,10 +132,10 @@ def container_fixture(
             logger.info(f"Stopping container: {container.get_container_id()[:12]}")
             container.stop()
     
-    return _container_fixture
+    return _container_fixture  # type: ignore[return-value]
 
 
-def scoped_container(scope: str = "function"):
+def scoped_container(scope: str = "function") -> Callable[[Callable[[], GenericContainer]], Any]:
     """
     Decorator to create a scoped container fixture.
     
@@ -149,15 +151,19 @@ def scoped_container(scope: str = "function"):
                 .with_env("POSTGRES_PASSWORD", "test")
         ```
     """
-    def decorator(func: Callable[[], GenericContainer]) -> Callable:
-        @pytest.fixture(scope=scope)
+    def decorator(func: Callable[[], GenericContainer]) -> Any:
+        # Import pytest here to avoid issues during type checking
+        import pytest as pytest_module
+        
+        @pytest_module.fixture(scope=scope)
         @functools.wraps(func)
-        def wrapper():
+        def wrapper() -> Iterator[GenericContainer]:
             container = func()
             container.start()
             try:
                 yield container
             finally:
                 container.stop()
-        return wrapper
+        return wrapper  # type: ignore[return-value]
     return decorator
+

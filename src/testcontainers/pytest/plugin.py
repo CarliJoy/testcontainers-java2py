@@ -9,15 +9,17 @@ Java source: https://github.com/testcontainers/testcontainers-java/blob/main/mod
 from __future__ import annotations
 
 import logging
+from typing import Any, TYPE_CHECKING
 
-import pytest
+if TYPE_CHECKING:
+    import pytest
 
 from testcontainers.core.docker_client import DockerClientFactory
 
 logger = logging.getLogger(__name__)
 
 
-def pytest_configure(config):
+def pytest_configure(config: Any) -> None:
     """Register testcontainers-specific markers."""
     config.addinivalue_line(
         "markers",
@@ -29,7 +31,7 @@ def pytest_configure(config):
     )
 
 
-def pytest_collection_modifyitems(config, items):
+def pytest_collection_modifyitems(config: Any, items: list[Any]) -> None:
     """
     Modify test collection to handle Docker availability.
     
@@ -44,14 +46,15 @@ def pytest_collection_modifyitems(config, items):
         docker_available = False
     
     if not docker_available:
-        skip_docker = pytest.mark.skip(reason="Docker is not available")
+        # Import pytest here to avoid circular imports during type checking
+        import pytest as pytest_module
+        skip_docker = pytest_module.mark.skip(reason="Docker is not available")
         for item in items:
             if "docker" in item.keywords or "testcontainers" in item.keywords:
                 item.add_marker(skip_docker)
 
 
-@pytest.fixture(scope="session")
-def docker_client():
+def docker_client() -> Any:
     """
     Session-scoped fixture providing Docker client.
     
@@ -61,8 +64,7 @@ def docker_client():
     return DockerClientFactory.instance().client()
 
 
-@pytest.fixture(scope="session", autouse=True)
-def cleanup_containers():
+def cleanup_containers() -> Any:
     """
     Session-scoped fixture for container cleanup.
     

@@ -11,15 +11,18 @@ from __future__ import annotations
 import functools
 import socket
 import time
-from typing import Callable
+from typing import Any, Callable, TypeVar, TYPE_CHECKING
 
-import pytest
+if TYPE_CHECKING:
+    import pytest
 
 from testcontainers.core import GenericContainer
 from testcontainers.core.docker_client import DockerClientFactory
 
+F = TypeVar('F', bound=Callable[..., Any])
 
-def skip_if_docker_unavailable(func: Callable) -> Callable:
+
+def skip_if_docker_unavailable(func: F) -> F:
     """
     Decorator to skip test if Docker is not available.
     
@@ -32,14 +35,16 @@ def skip_if_docker_unavailable(func: Callable) -> Callable:
         ```
     """
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        # Import pytest here to avoid issues during type checking
+        import pytest as pytest_module
         try:
             if not DockerClientFactory.instance().is_docker_available():
-                pytest.skip("Docker is not available")
+                pytest_module.skip("Docker is not available")
         except Exception:
-            pytest.skip("Could not check Docker availability")
+            pytest_module.skip("Could not check Docker availability")
         return func(*args, **kwargs)
-    return wrapper
+    return wrapper  # type: ignore[return-value]
 
 
 def wait_for_container_ready(
