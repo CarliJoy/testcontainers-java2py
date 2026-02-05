@@ -317,7 +317,8 @@
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Create new Python project
-# Note: Use underscores for package names (hyphens not allowed in Python)
+# Note: Use underscores for package/import names
+# (hyphens are only allowed in distribution names, not import names)
 mkdir testcontainers_python
 cd testcontainers_python
 uv init --lib  # Creates package structure with 'testcontainers_python' as package name
@@ -459,8 +460,8 @@ ruff format .
 - `String` → `str`
 - `int`, `Integer` → `int`
 - `boolean` → `bool`
-- `List<T>` → `list[T]` (Python 3.9+, preferred)
-- `Map<K, V>` → `dict[K, V]` (Python 3.9+, preferred)
+- `List<T>` → `list[T]` (Python 3.9+ with `from __future__ import annotations`)
+- `Map<K, V>` → `dict[K, V]` (Python 3.9+ with `from __future__ import annotations`)
 - `Optional<T>` → `Optional[T]` or `T | None` (Python 3.10+)
 - `void method()` → `def method() -> None:`
 - `@Override` → no equivalent (just document in docstring)
@@ -469,7 +470,7 @@ ruff format .
 - `try-with-resources` → `with` statement
 - `@Getter/@Setter` (Lombok) → `@property` or dataclass
 
-**Note:** Use built-in generic syntax (`list[T]`, `dict[K, V]`) since we target Python 3.9+.
+**Note:** For Python 3.9, add `from __future__ import annotations` at the top of each file to use built-in generic syntax (`list[T]`, `dict[K, V]`). Python 3.10+ doesn't require this import.
 
 **Docker Client:**
 - `DockerClient` (Java) → `docker.DockerClient` (docker-py)
