@@ -1,0 +1,216 @@
+"""Tests for docker_client module."""
+
+from __future__ import annotations
+
+import pytest
+from unittest.mock import Mock, patch, MagicMock
+
+from testcontainers.core.docker_client import (
+    DockerClientFactory,
+    DockerClientWrapper,
+    LazyDockerClient,
+)
+
+
+class TestDockerClientWrapper:
+    """Tests for DockerClientWrapper class."""
+
+    def test_wrapper_delegates_to_client(self):
+        """Test that wrapper delegates attribute access to underlying client."""
+        mock_client = Mock()
+        mock_client.containers = Mock()
+        
+        wrapper = DockerClientWrapper(mock_client)
+        
+        # Access should be delegated
+        assert wrapper.containers is mock_client.containers
+
+    def test_wrapper_close_raises_error(self):
+        """Test that closing wrapper raises an error."""
+        mock_client = Mock()
+        wrapper = DockerClientWrapper(mock_client)
+        
+        with pytest.raises(RuntimeError, match="You should never close the global DockerClient"):
+            wrapper.close()
+
+    def test_wrapper_client_property(self):
+        """Test client property returns underlying client."""
+        mock_client = Mock()
+        wrapper = DockerClientWrapper(mock_client)
+        
+        assert wrapper.client is mock_client
+
+
+class TestLazyDockerClient:
+    """Tests for LazyDockerClient class."""
+
+    def test_lazy_client_defers_initialization(self):
+        """Test that lazy client doesn't initialize until accessed."""
+        mock_factory = Mock(spec=DockerClientFactory)
+        
+        lazy_client = LazyDockerClient(mock_factory)
+        
+        # Factory should not be called yet
+        mock_factory.client.assert_not_called()
+
+    def test_lazy_client_initializes_on_access(self):
+        """Test that lazy client initializes when accessed."""
+        mock_factory = Mock(spec=DockerClientFactory)
+        mock_client = Mock()
+        mock_client.containers = Mock()
+        mock_factory.client.return_value = mock_client
+        
+        lazy_client = LazyDockerClient(mock_factory)
+        
+        # Access an attribute - should trigger initialization
+        _ = lazy_client.containers
+        
+        # Factory should have been called
+        mock_factory.client.assert_called_once()
+
+    def test_lazy_client_str(self):
+        """Test string representation."""
+        mock_factory = Mock(spec=DockerClientFactory)
+        lazy_client = LazyDockerClient(mock_factory)
+        
+        assert str(lazy_client) == "LazyDockerClient"
+
+
+class TestDockerClientFactory:
+    """Tests for DockerClientFactory class."""
+
+    def setup_method(self):
+        """Reset factory before each test."""
+        DockerClientFactory.reset()
+
+    def teardown_method(self):
+        """Clean up after each test."""
+        DockerClientFactory.reset()
+
+    def test_singleton_instance(self):
+        """Test that factory returns same instance."""
+        instance1 = DockerClientFactory.instance()
+        instance2 = DockerClientFactory.instance()
+        
+        assert instance1 is instance2
+
+    def test_lazy_client_creation(self):
+        """Test lazy client factory method."""
+        lazy_client = DockerClientFactory.lazy_client()
+        
+        assert isinstance(lazy_client, LazyDockerClient)
+
+    def test_marker_labels(self):
+        """Test marker labels creation."""
+        labels = DockerClientFactory.marker_labels()
+        
+        assert "org.testcontainers" in labels
+        assert labels["org.testcontainers"] == "true"
+        assert labels["org.testcontainers.lang"] == "python"
+        assert "org.testcontainers.version" in labels
+
+    @patch('testcontainers.core.docker_client.docker.from_env')
+    def test_client_creation_success(self, mock_from_env):
+        """Test successful client creation."""
+        mock_client = MagicMock()
+        mock_client.ping.return_value = True
+        mock_client.info.return_value = {
+            'ServerVersion': '20.10.0',
+            'OperatingSystem': 'Linux',
+            'MemTotal': 16000000000,
+        }
+        mock_client.version.return_value = {
+            'ApiVersion': '1.41',
+        }
+        mock_from_env.return_value = mock_client
+        
+        factory = DockerClientFactory.instance()
+        client = factory.client()
+        
+        assert client is not None
+        mock_from_env.assert_called_once()
+        mock_client.ping.assert_called_once()
+
+    @patch('testcontainers.core.docker_client.docker.from_env')
+    def test_client_creation_cached(self, mock_from_env):
+        """Test that client is cached after first creation."""
+        mock_client = MagicMock()
+        mock_client.ping.return_value = True
+        mock_client.info.return_value = {
+            'ServerVersion': '20.10.0',
+            'OperatingSystem': 'Linux',
+            'MemTotal': 16000000000,
+        }
+        mock_client.version.return_value = {
+            'ApiVersion': '1.41',
+        }
+        mock_from_env.return_value = mock_client
+        
+        factory = DockerClientFactory.instance()
+        client1 = factory.client()
+        client2 = factory.client()
+        
+        assert client1 is client2
+        # Should only create once
+        assert mock_from_env.call_count == 1
+
+    @patch('testcontainers.core.docker_client.docker.from_env')
+    def test_is_docker_available_true(self, mock_from_env):
+        """Test is_docker_available returns True when Docker is available."""
+        mock_client = MagicMock()
+        mock_client.ping.return_value = True
+        mock_client.info.return_value = {
+            'ServerVersion': '20.10.0',
+            'OperatingSystem': 'Linux',
+            'MemTotal': 16000000000,
+        }
+        mock_client.version.return_value = {
+            'ApiVersion': '1.41',
+        }
+        mock_from_env.return_value = mock_client
+        
+        factory = DockerClientFactory.instance()
+        
+        assert factory.is_docker_available() is True
+
+    @patch('testcontainers.core.docker_client.docker.from_env')
+    def test_is_docker_available_false(self, mock_from_env):
+        """Test is_docker_available returns False when Docker is not available."""
+        mock_from_env.side_effect = Exception("Docker not available")
+        
+        factory = DockerClientFactory.instance()
+        
+        assert factory.is_docker_available() is False
+
+    @patch('testcontainers.core.docker_client.docker.from_env')
+    def test_cached_failure(self, mock_from_env):
+        """Test that failures are cached and re-raised."""
+        mock_from_env.side_effect = Exception("Docker not available")
+        
+        factory = DockerClientFactory.instance()
+        
+        # First call should fail
+        with pytest.raises(Exception, match="Docker not available"):
+            factory.client()
+        
+        # Second call should raise the same cached exception
+        with pytest.raises(Exception, match="Docker not available"):
+            factory.client()
+        
+        # Should only try once
+        assert mock_from_env.call_count == 1
+
+    def test_docker_host_ip_localhost_default(self):
+        """Test that default Docker host IP is localhost."""
+        factory = DockerClientFactory()
+        ip = factory._determine_docker_host_ip()
+        
+        assert ip == 'localhost'
+
+    @patch.dict('os.environ', {'DOCKER_HOST': 'tcp://192.168.1.100:2375'})
+    def test_docker_host_ip_from_env(self):
+        """Test Docker host IP extraction from DOCKER_HOST env var."""
+        factory = DockerClientFactory()
+        ip = factory._determine_docker_host_ip()
+        
+        assert ip == '192.168.1.100'
