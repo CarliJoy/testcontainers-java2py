@@ -1,4 +1,4 @@
-# Core Library Enhancement Plan - Testcontainers Python
+# Java-to-Python Direct Conversion Plan - Testcontainers
 
 ## Project Overview
 
@@ -11,173 +11,186 @@
 - Gradle-based build system
 - Java 17 toolchain, targeting Java 8
 
-**Target:**
-- Enhance existing testcontainers-python project (https://testcontainers-python.readthedocs.io/)
-- Port core library features and patterns from Java implementation
-- Focus on core library first, modules later
+**Approach:**
+- **Direct conversion** of Java code to Python (no comparison with existing implementations)
+- Start with core library, then convert modules
 - Use `uv` for package management
 - Follow Python standards (PEP 8, PEP 484, etc.)
+- Automated conversion where possible, manual refinement where needed
 
-## High-Level Enhancement Steps
+## Direct Conversion Steps
 
-### 1. **Assessment and Gap Analysis**
-   - Clone and analyze testcontainers-python repository
-   - Compare Java core library features with Python implementation
-   - Identify missing features and patterns in Python version
-   - Map Java core classes to Python equivalents
-   - Document feature gaps and enhancement opportunities
-   - Prioritize features based on impact and complexity
-
-### 2. **Development Environment Setup**
+### 1. **Development Environment Setup**
    - Install `uv` package manager (https://docs.astral.sh/uv/)
-   - Set up local development environment with uv
+   - Set up Python project structure with `uv init`
    - Configure code quality tools:
-     - `ruff` for linting and formatting (replaces black + flake8)
+     - `ruff` for linting and formatting
      - `mypy` for static type checking
      - `pytest` for testing
    - Set up pre-commit hooks for code quality
-   - Review Python packaging standards (PEP 517, PEP 621)
+   - Create pyproject.toml with project metadata (PEP 621)
 
-### 3. **Core Library Enhancement - Phase 1**
+### 2. **Conversion Tooling Setup**
+   - Evaluate Java-to-Python conversion tools:
+     - Consider tools like `j2py`, `java2python`, or manual conversion
+     - Set up custom conversion scripts for common patterns
+   - Create conversion mapping document:
+     - Java → Python type mappings
+     - Common idiom translations
+     - Library equivalents (docker-java → docker-py)
+   - Prepare test infrastructure to validate conversions
 
-   **Focus Areas (Priority Order):**
+### 3. **Core Library Conversion - Phase 1**
+
+   **Conversion Priority Order:**
    
-   1. **GenericContainer Enhancements**
-      - Review Java GenericContainer implementation
-      - Add missing configuration options
-      - Improve builder pattern support
-      - Enhanced port mapping capabilities
-      - Better environment variable handling
-      - Volume mounting improvements
+   1. **Base Classes and Interfaces**
+      - `GenericContainer.java` → `generic_container.py`
+      - `Container.java` → `container.py` (interface/protocol)
+      - `ContainerState.java` → `container_state.py`
+      - Common base abstractions
    
    2. **Wait Strategies**
-      - Port advanced wait strategies from Java
-      - HTTP wait strategy enhancements
-      - Log wait strategy improvements
-      - Custom wait strategy support
-      - Composable wait strategies
+      - `WaitStrategy.java` → `wait_strategy.py` (base)
+      - `HttpWaitStrategy.java` → `http_wait_strategy.py`
+      - `LogMessageWaitStrategy.java` → `log_wait_strategy.py`
+      - `HealthCheckWaitStrategy.java` → `health_check_wait_strategy.py`
+      - Other wait strategy implementations
    
-   3. **Network Management**
-      - Network creation and configuration
-      - Container network aliases
-      - Network mode options
-      - Inter-container networking
+   3. **Docker Client Wrapper**
+      - `DockerClientFactory.java` → `docker_client_factory.py`
+      - `DockerClient` interactions → docker-py SDK calls
+      - Connection configuration classes
+      - Authentication handling
    
-   4. **Lifecycle Management**
-      - Startup hooks and callbacks
-      - Container reuse patterns
-      - Cleanup and resource management
-      - Graceful shutdown handling
+   4. **Network Support**
+      - `Network.java` → `network.py`
+      - Network configuration classes
+      - Network lifecycle management
    
    5. **Image Handling**
-      - Image pulling strategies
-      - Registry authentication
-      - Image from Dockerfile support
-      - Image substitution patterns
+      - `RemoteDockerImage.java` → `remote_docker_image.py`
+      - `ImageFromDockerfile.java` → `image_from_dockerfile.py`
+      - Image pulling and caching logic
    
-   6. **Docker Client Integration**
-      - Connection configuration
-      - TLS support improvements
-      - Docker context support
-      - Better error handling and diagnostics
+   6. **Lifecycle and Utilities**
+      - Lifecycle hooks and callbacks
+      - Resource cleanup mechanisms
+      - Utility classes and helpers
 
-### 4. **Implementation Best Practices**
+### 4. **Conversion Process for Each File**
 
-   **Python Standards:**
-   - Follow PEP 8 style guide
+   **Step-by-Step Conversion:**
+   
+   1. **Analyze Java Source**
+      - Understand class purpose and responsibilities
+      - Identify dependencies and imports
+      - Note Java-specific patterns (annotations, generics, etc.)
+   
+   2. **Initial Conversion**
+      - Use conversion tool or manual translation
+      - Convert class structure (class → class, interface → Protocol/ABC)
+      - Translate method signatures with type hints
+      - Convert basic logic (for loops, conditionals, etc.)
+   
+   3. **Pythonic Refinement**
+      - Replace Java idioms with Python equivalents
+      - Use list comprehensions, generators, context managers
+      - Apply dataclasses for simple data structures
+      - Implement `__enter__`/`__exit__` for resources
+   
+   4. **Dependency Translation**
+      - Java Docker client → docker-py SDK
+      - Java logging → Python logging module
+      - Java collections → Python built-ins (list, dict, set)
+      - Java Optional → None or typing.Optional
+   
+   5. **Testing**
+      - Convert Java tests to pytest
+      - Add Python-specific test cases
+      - Ensure behavior matches Java version
+      - Achieve >90% coverage
+
+### 5. **Implementation Standards**
+
+   **Python Code Quality:**
+   - Follow PEP 8 style guide (enforced by ruff)
    - Use PEP 484 type hints throughout
-   - Apply PEP 257 for docstrings
-   - Use dataclasses (PEP 557) where appropriate
+   - Apply PEP 257 for docstrings (Google style)
+   - Use dataclasses (PEP 557) for data structures
    - Follow PEP 621 for project metadata
    
-   **Code Quality:**
-   - Type hints on all public APIs
-   - Comprehensive docstrings (Google or NumPy style)
-   - Unit tests for all new features (aim for >90% coverage)
-   - Integration tests for key workflows
-   - Use context managers for resource management
-   
-   **Dependencies:**
-   - Minimize external dependencies
-   - Use standard library where possible
-   - docker-py for Docker client interaction
-   - pytest for testing framework
-   - Keep dependency tree shallow and well-maintained
-
-### 5. **Testing Strategy**
-   
-   **Test Organization:**
-   - Unit tests for individual components
-   - Integration tests for Docker interactions
-   - Example-based tests demonstrating usage patterns
-   - Test on multiple Python versions (3.9, 3.10, 3.11, 3.12, 3.13+)
-   
-   **Test Coverage:**
-   - Aim for >90% code coverage for core library
-   - Test edge cases and error conditions
-   - Performance benchmarks for critical paths
-   - Compatibility tests with various Docker versions
-   
-   **Test Tools:**
-   - pytest as primary testing framework
-   - pytest-cov for coverage reporting
-   - pytest-timeout for hanging tests
-   - pytest-xdist for parallel test execution
-
-### 6. **Documentation Updates**
-   
-   **For Each Enhanced Feature:**
-   - Clear docstrings with examples
-   - Type hints for IDE support
-   - Migration notes from Java patterns
-   - Usage examples comparing with Java
-   
-   **Documentation Structure:**
-   - API reference with type information
-   - How-to guides for common patterns
-   - Examples ported from Java
-   - Feature comparison matrix (Java vs Python)
-
-### 7. **API Design Principles**
-   
-   **Pythonic Patterns:**
+   **Code Patterns:**
    - Context managers (`with` statement) for container lifecycle
-   - Fluent interfaces with method chaining
-   - Sensible defaults, explicit configuration when needed
-   - Duck typing with protocol classes where appropriate
-   - Generator expressions for lazy evaluation
+   - Type hints on all public APIs
+   - Comprehensive docstrings with examples
+   - Use standard library where possible
+   - Minimal external dependencies
    
-   **Modern Python Features:**
-   - Type hints with `typing` module
-   - Dataclasses for configuration objects
-   - Async/await support (optional, for advanced users)
-   - Pattern matching (Python 3.10+) for container lifecycle states (starting, running, stopped, failed)
-   - `pathlib` for file operations
-   
-   **Backward Compatibility:**
-   - Maintain existing testcontainers-python API
-   - Add new features as opt-in enhancements
-   - Deprecation warnings for breaking changes
-   - Clear migration path documentation
+   **Testing:**
+   - Convert Java tests to pytest
+   - Aim for >90% code coverage
+   - Test on Python 3.9, 3.10, 3.11, 3.12+
+   - Integration tests with real Docker
+   - Performance benchmarks
 
-### 8. **Code Organization**
+### 6. **Documentation**
    
-   **Module Structure:**
-   ```
-   testcontainers/
-   ├── core/              # Core container abstractions
-   ├── core/waiting.py    # Wait strategies
-   ├── core/network.py    # Network management
-   ├── core/image.py      # Image handling
-   ├── core/config.py     # Configuration
-   └── core/docker_client.py  # Docker client wrapper
-   ```
+   **During Conversion:**
+   - Convert JavaDoc to Python docstrings
+   - Translate inline comments
+   - Update examples from Java to Python syntax
+   - Document conversion decisions and gotchas
    
-   **Separation of Concerns:**
-   - Clear interfaces between components
-   - Dependency injection for testability
-   - Minimize coupling between modules
-   - Well-defined public APIs with private implementation
+   **Documentation Files:**
+   - README.md with quickstart guide
+   - API reference (auto-generated from docstrings)
+   - Examples directory with Python equivalents of Java examples
+   - CONVERSION_NOTES.md documenting Java→Python mappings
+
+### 7. **Project Structure**
+
+   **Python Package Layout:**
+   ```
+   testcontainers-python/
+   ├── pyproject.toml          # Project metadata (PEP 621)
+   ├── README.md
+   ├── CONVERSION_NOTES.md     # Java→Python mapping notes
+   ├── src/
+   │   └── testcontainers/
+   │       ├── __init__.py
+   │       ├── core/
+   │       │   ├── __init__.py
+   │       │   ├── generic_container.py
+   │       │   ├── container.py        # Protocol/ABC
+   │       │   ├── container_state.py
+   │       │   └── docker_client.py
+   │       ├── waiting/
+   │       │   ├── __init__.py
+   │       │   ├── wait_strategy.py    # Base class
+   │       │   ├── http.py
+   │       │   ├── log.py
+   │       │   └── healthcheck.py
+   │       ├── images/
+   │       │   ├── __init__.py
+   │       │   ├── remote_image.py
+   │       │   └── dockerfile_image.py
+   │       └── network.py
+   ├── tests/
+   │   ├── unit/
+   │   └── integration/
+   └── examples/
+       └── (ported from Java examples/)
+   ```
+
+### 8. **Conversion Helpers**
+
+   **Create Conversion Utilities:**
+   - Script to extract Java class structure
+   - Template generator for Python equivalents
+   - Automated type mapping (String → str, etc.)
+   - Import statement converter
+   - Test case converter
 
 ## Key Technical Considerations
 
@@ -228,66 +241,86 @@
 | Maintenance burden | Automated testing, clear contribution guidelines |
 | Existing Python project overlap | Evaluate collaboration or differentiation strategy |
 
-## Feature Enhancement Roadmap
+## Conversion Roadmap
 
-### Phase 1: Core Container Enhancements (Weeks 1-4)
-- [ ] Analyze Java GenericContainer vs Python implementation
-- [ ] Port missing container configuration options
-- [ ] Enhance port mapping and exposure
-- [ ] Improve environment variable handling
-- [ ] Add volume mounting improvements
-- [ ] Comprehensive tests for enhancements
+### Phase 1: Setup & Base Infrastructure (Week 1)
+- [ ] Set up Python project with `uv init`
+- [ ] Create pyproject.toml with dependencies
+- [ ] Set up ruff, mypy, pytest configuration
+- [ ] Create project structure (src/, tests/, examples/)
+- [ ] Document Java→Python type mappings
+- [ ] Create conversion helper scripts
 
-### Phase 2: Wait Strategies (Weeks 5-6)
-- [ ] Port advanced wait strategies from Java
-- [ ] HTTP/HTTPS wait with custom matchers
-- [ ] Log-based wait strategies
-- [ ] HealthCheck wait strategy
-- [ ] Composable wait strategies
-- [ ] Examples and documentation
+### Phase 2: Core Container Classes (Weeks 2-4)
+- [ ] Convert Container interface/protocol
+- [ ] Convert GenericContainer base class
+- [ ] Convert ContainerState
+- [ ] Convert DockerClientFactory
+- [ ] Port core container lifecycle methods
+- [ ] Write tests for core functionality
 
-### Phase 3: Network & Lifecycle (Weeks 7-9)
-- [ ] Network creation and configuration
-- [ ] Container reuse patterns
-- [ ] Startup/shutdown hooks
-- [ ] Resource cleanup improvements
-- [ ] Integration tests
+### Phase 3: Wait Strategies (Weeks 5-6)
+- [ ] Convert WaitStrategy base class
+- [ ] Convert HttpWaitStrategy
+- [ ] Convert LogMessageWaitStrategy
+- [ ] Convert HealthCheckWaitStrategy
+- [ ] Convert other wait strategies
+- [ ] Write comprehensive wait strategy tests
 
-### Phase 4: Image & Docker Client (Weeks 10-12)
-- [ ] Image pulling strategies
-- [ ] Registry authentication
-- [ ] Build from Dockerfile support
-- [ ] Docker client configuration enhancements
-- [ ] Error handling improvements
+### Phase 4: Images & Network (Weeks 7-8)
+- [ ] Convert RemoteDockerImage
+- [ ] Convert ImageFromDockerfile
+- [ ] Convert Network classes
+- [ ] Port image pulling and caching logic
+- [ ] Write image and network tests
+
+### Phase 5: Testing & Examples (Weeks 9-10)
+- [ ] Convert Java test suite to pytest
+- [ ] Port example applications from examples/
+- [ ] Integration testing with real containers
+- [ ] Performance benchmarking
+- [ ] Documentation review
+
+### Phase 6: Modules (Weeks 11+)
+- [ ] Convert module classes (PostgreSQL, MySQL, etc.)
+- [ ] One module at a time, based on priority
+- [ ] Each module: convert code, tests, examples
 
 ## Success Metrics
 
-**Core Library Enhancements:**
-- [ ] Feature parity assessment document created
-- [ ] >90% test coverage for new code
-- [ ] Type hints on all public APIs
-- [ ] Documentation with examples for each feature
-- [ ] Performance benchmarks show no regression
-- [ ] All new features have integration tests
+**Conversion Completeness:**
+- [ ] All core library classes converted to Python
+- [ ] All wait strategies ported
+- [ ] Image and network support fully converted
+- [ ] At least 10 most-used modules converted
+- [ ] Test suite converted and passing
 
 **Code Quality:**
+- [ ] >90% test coverage for converted code
+- [ ] Type hints on all public APIs
 - [ ] Passes `ruff` linting with no errors
 - [ ] Passes `mypy` type checking in strict mode
-- [ ] Pre-commit hooks configured and passing
-- [ ] Code reviews completed for all changes
+- [ ] All tests passing on Python 3.9, 3.10, 3.11, 3.12+
+
+**Documentation:**
+- [ ] README with quickstart examples
+- [ ] API documentation generated from docstrings
+- [ ] Examples ported from Java
+- [ ] CONVERSION_NOTES.md documenting mappings
 
 ## Development Workflow with `uv`
 
-**Initial Setup:**
+**Initial Project Setup:**
 ```bash
 # Install uv (see https://docs.astral.sh/uv/)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Clone testcontainers-python
-git clone https://github.com/testcontainers/testcontainers-python.git
-
-# Create virtual environment and install dependencies
+# Create new Python project
+mkdir testcontainers-python
 cd testcontainers-python
+uv init --name testcontainers --lib
+
+# Create virtual environment
 uv venv
 
 # Activate virtual environment
@@ -298,72 +331,147 @@ source .venv/bin/activate
 # Windows (PowerShell):
 .venv/Scripts/Activate.ps1
 
-# Install project in editable mode with dev dependencies
-uv pip install -e ".[dev]"
+# Install dependencies
+uv pip install docker pytest pytest-cov mypy ruff
+uv pip install -e .
 ```
 
-**Development Cycle:**
+**Conversion Workflow:**
 ```bash
-# Install/update dependencies
-uv pip install -r requirements.txt
+# 1. Pick a Java file to convert
+# Example: core/src/main/java/org/testcontainers/containers/GenericContainer.java
 
-# Run tests
+# 2. Create Python equivalent structure
+# src/testcontainers/core/generic_container.py
+
+# 3. Convert the code (manual or with tools)
+# - Translate class definition
+# - Convert methods with type hints
+# - Replace Java patterns with Python equivalents
+
+# 4. Write/convert tests
+# tests/unit/test_generic_container.py
+
+# 5. Run tests
+pytest tests/unit/test_generic_container.py -v
+
+# 6. Check types and linting
+mypy src/testcontainers
+ruff check src/ tests/
+ruff format src/ tests/
+
+# 7. Commit when tests pass
+git add src/testcontainers/core/generic_container.py tests/unit/test_generic_container.py
+git commit -m "Convert GenericContainer from Java to Python"
+```
+
+**Continuous Testing:**
+```bash
+# Run all tests
 pytest
 
+# Run with coverage
+pytest --cov=testcontainers --cov-report=html
+
 # Run type checking
-mypy testcontainers
+mypy src/testcontainers
 
 # Run linting
 ruff check .
-ruff format .
 
-# Run specific test
-pytest tests/test_core.py -v
+# Format code
+ruff format .
 ```
 
 ## Recommended Approach
 
-**Iterative Enhancement Strategy:**
+**Direct Conversion Strategy:**
 
-1. **Week 1-2**: Environment setup + gap analysis
-   - Set up development environment with uv
-   - Clone and thoroughly analyze testcontainers-python
-   - Create detailed feature comparison spreadsheet
-   - Identify quick wins vs. complex enhancements
+1. **Week 1**: Project setup
+   - Set up Python project with `uv`
+   - Create project structure
+   - Configure tooling (ruff, mypy, pytest)
+   - Document conversion mappings
 
-2. **Week 3-4**: First core enhancements
-   - Start with highest-impact, lowest-complexity features
-   - Ensure each enhancement has tests and docs
-   - Get feedback from maintainers early
+2. **Weeks 2-4**: Convert core classes
+   - Start with simplest classes (utilities, constants)
+   - Then base interfaces/protocols
+   - Then GenericContainer and main classes
+   - Test each class as you convert it
 
-3. **Week 5+**: Continue iterative enhancements
-   - One feature area at a time
-   - Test thoroughly before moving to next area
-   - Regular check-ins with project maintainers
-   - Continuous documentation updates
+3. **Weeks 5-6**: Convert wait strategies
+   - Base wait strategy class first
+   - Then concrete implementations
+   - Comprehensive testing
 
-4. **Throughout**: Follow Python best practices
-   - Write idiomatic Python code
-   - Comprehensive type hints
-   - Clear, concise documentation
-   - Test-driven development approach
+4. **Weeks 7-8**: Convert images & networking
+   - Image classes
+   - Network support
+   - Docker client wrapper
+
+5. **Weeks 9-10**: Tests and examples
+   - Convert test suite
+   - Port examples
+   - Integration testing
+
+6. **Weeks 11+**: Module conversion
+   - One module at a time
+   - Focus on most popular modules first
+
+**Throughout:**
+- Convert one file at a time
+- Write/convert tests immediately
+- Run tests continuously
+- Document tricky conversions
+- Keep code Pythonic
 
 ## Next Steps
 
-1. **Immediate Actions:**
-   - [ ] Install `uv` and set up development environment
-   - [ ] Clone testcontainers-python repository
-   - [ ] Familiarize with existing codebase structure
-   - [ ] Set up development tools (ruff, mypy, pytest)
+1. **Immediate Actions (Day 1):**
+   - [ ] Install `uv`
+   - [ ] Create new Python project structure
+   - [ ] Set up pyproject.toml with dependencies
+   - [ ] Configure ruff, mypy, pytest
+   - [ ] Create CONVERSION_NOTES.md for tracking mappings
 
-2. **First Week Goals:**
-   - [ ] Create feature comparison matrix (Java vs Python)
-   - [ ] Identify top 10 missing features in Python
-   - [ ] Prioritize features by impact/effort ratio
-   - [ ] Create detailed plan for first enhancement
+2. **First Week:**
+   - [ ] Document Java→Python type mappings
+   - [ ] Create conversion helper scripts (optional)
+   - [ ] Convert first simple utility class
+   - [ ] Set up test infrastructure
+   - [ ] Establish conversion workflow
 
-3. **Ongoing:**
-   - [ ] Regular commits with clear messages
-   - [ ] Write tests before implementing features
-   - [ ] Update documentation as you go
-   - [ ] Engage with testcontainers-python maintainers
+3. **Week 2 Onwards:**
+   - [ ] Convert one Java file at a time
+   - [ ] Write tests for each converted file
+   - [ ] Keep CONVERSION_NOTES.md updated
+   - [ ] Regular commits after each successful conversion
+   - [ ] Build up core library systematically
+
+## Conversion Tips
+
+**Common Java→Python Patterns:**
+- `public class Foo` → `class Foo:`
+- `String` → `str`
+- `int`, `Integer` → `int`
+- `boolean` → `bool`
+- `List<T>` → `list[T]` or `List[T]`
+- `Map<K,V>` → `dict[K, V]` or `Dict[K, V]`
+- `Optional<T>` → `Optional[T]` or `T | None`
+- `void method()` → `def method() -> None:`
+- `@Override` → no equivalent (just document in docstring)
+- `implements Interface` → `(Protocol)` or `(ABC)`
+- `new Foo()` → `Foo()`
+- `try-with-resources` → `with` statement
+- `@Getter/@Setter` (Lombok) → `@property` or dataclass
+
+**Docker Client:**
+- `DockerClient` (Java) → `docker.DockerClient` (docker-py)
+- Most methods have similar names in docker-py
+
+**Testing:**
+- JUnit → pytest
+- `@Test` → `def test_...()`
+- `assertEquals` → `assert x == y`
+- `assertTrue` → `assert condition`
+- `@BeforeEach` → pytest fixtures
