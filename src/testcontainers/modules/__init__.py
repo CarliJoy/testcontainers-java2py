@@ -35,6 +35,10 @@ __all__ = [
     "CockroachDBContainer",
     "BrowserWebDriverContainer",
     "BrowserType",
+    "QdrantContainer",
+    "WeaviateContainer",
+    "MockServerContainer",
+    "ToxiproxyContainer",
 ]
 
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
@@ -63,3 +67,7 @@ from testcontainers.modules.chromadb import ChromaDBContainer
 from testcontainers.modules.clickhouse import ClickHouseContainer
 from testcontainers.modules.cockroachdb import CockroachDBContainer
 from testcontainers.modules.selenium import BrowserWebDriverContainer, BrowserType
+from testcontainers.modules.qdrant import QdrantContainer
+from testcontainers.modules.weaviate import WeaviateContainer
+from testcontainers.modules.mockserver import MockServerContainer
+from testcontainers.modules.toxiproxy import ToxiproxyContainer
