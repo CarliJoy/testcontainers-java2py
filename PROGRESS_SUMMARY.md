@@ -10,14 +10,15 @@ This document tracks the progress of converting the Testcontainers Java library 
 
 | Metric | Count |
 |--------|-------|
-| **Python Files Created** | 44 |
-| **Lines of Python Code** | ~8,000 |
-| **Test Files** | 14 |
-| **Test Cases** | 299 |
+| **Python Files Created** | 65 |
+| **Lines of Python Code** | ~13,500 |
+| **Test Files** | 18 |
+| **Test Cases** | 510+ |
 | **Test Pass Rate** | 100% |
-| **Java Files Converted** | ~85 |
-| **Original Java Lines** | ~10,000+ |
-| **Code Reduction** | ~38% |
+| **Java Files Converted** | ~100 |
+| **Specialized Modules** | 34/63 (54%) |
+| **Original Java Lines** | ~15,000+ |
+| **Code Reduction** | ~35% |
 
 ## ✅ Implemented Features
 
