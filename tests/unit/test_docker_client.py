@@ -76,31 +76,31 @@ class TestLazyDockerClient:
         assert str(lazy_client) == "LazyDockerClient"
 
 
+@pytest.fixture
+def reset_factory():
+    """Fixture to reset factory before and after each test."""
+    DockerClientFactory.reset()
+    yield
+    DockerClientFactory.reset()
+
+
 class TestDockerClientFactory:
     """Tests for DockerClientFactory class."""
 
-    def setup_method(self):
-        """Reset factory before each test."""
-        DockerClientFactory.reset()
-
-    def teardown_method(self):
-        """Clean up after each test."""
-        DockerClientFactory.reset()
-
-    def test_singleton_instance(self):
+    def test_singleton_instance(self, reset_factory):
         """Test that factory returns same instance."""
         instance1 = DockerClientFactory.instance()
         instance2 = DockerClientFactory.instance()
         
         assert instance1 is instance2
 
-    def test_lazy_client_creation(self):
+    def test_lazy_client_creation(self, reset_factory):
         """Test lazy client factory method."""
         lazy_client = DockerClientFactory.lazy_client()
         
         assert isinstance(lazy_client, LazyDockerClient)
 
-    def test_marker_labels(self):
+    def test_marker_labels(self, reset_factory):
         """Test marker labels creation."""
         labels = DockerClientFactory.marker_labels()
         
@@ -110,7 +110,7 @@ class TestDockerClientFactory:
         assert "org.testcontainers.version" in labels
 
     @patch('testcontainers.core.docker_client.docker.from_env')
-    def test_client_creation_success(self, mock_from_env):
+    def test_client_creation_success(self, mock_from_env, reset_factory):
         """Test successful client creation."""
         mock_client = MagicMock()
         mock_client.ping.return_value = True
@@ -132,7 +132,7 @@ class TestDockerClientFactory:
         mock_client.ping.assert_called_once()
 
     @patch('testcontainers.core.docker_client.docker.from_env')
-    def test_client_creation_cached(self, mock_from_env):
+    def test_client_creation_cached(self, mock_from_env, reset_factory):
         """Test that client is cached after first creation."""
         mock_client = MagicMock()
         mock_client.ping.return_value = True
@@ -155,7 +155,7 @@ class TestDockerClientFactory:
         assert mock_from_env.call_count == 1
 
     @patch('testcontainers.core.docker_client.docker.from_env')
-    def test_is_docker_available_true(self, mock_from_env):
+    def test_is_docker_available_true(self, mock_from_env, reset_factory):
         """Test is_docker_available returns True when Docker is available."""
         mock_client = MagicMock()
         mock_client.ping.return_value = True
@@ -174,7 +174,7 @@ class TestDockerClientFactory:
         assert factory.is_docker_available() is True
 
     @patch('testcontainers.core.docker_client.docker.from_env')
-    def test_is_docker_available_false(self, mock_from_env):
+    def test_is_docker_available_false(self, mock_from_env, reset_factory):
         """Test is_docker_available returns False when Docker is not available."""
         mock_from_env.side_effect = Exception("Docker not available")
         
@@ -183,7 +183,7 @@ class TestDockerClientFactory:
         assert factory.is_docker_available() is False
 
     @patch('testcontainers.core.docker_client.docker.from_env')
-    def test_cached_failure(self, mock_from_env):
+    def test_cached_failure(self, mock_from_env, reset_factory):
         """Test that failures are cached and re-raised."""
         mock_from_env.side_effect = Exception("Docker not available")
         
@@ -200,7 +200,7 @@ class TestDockerClientFactory:
         # Should only try once
         assert mock_from_env.call_count == 1
 
-    def test_docker_host_ip_localhost_default(self):
+    def test_docker_host_ip_localhost_default(self, reset_factory):
         """Test that default Docker host IP is localhost."""
         factory = DockerClientFactory()
         ip = factory._determine_docker_host_ip()
@@ -208,7 +208,7 @@ class TestDockerClientFactory:
         assert ip == 'localhost'
 
     @patch.dict('os.environ', {'DOCKER_HOST': 'tcp://192.168.1.100:2375'})
-    def test_docker_host_ip_from_env(self):
+    def test_docker_host_ip_from_env(self, reset_factory):
         """Test Docker host IP extraction from DOCKER_HOST env var."""
         factory = DockerClientFactory()
         ip = factory._determine_docker_host_ip()
