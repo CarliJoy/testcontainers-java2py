@@ -41,10 +41,11 @@ class MySQLContainer(JdbcDatabaseContainer):
 
     # Default configuration
     DEFAULT_IMAGE = "mysql:8"
-    DEFAULT_PORT = 3306
+    MYSQL_PORT = 3306
     DEFAULT_USERNAME = "test"
     DEFAULT_PASSWORD = "test"
     DEFAULT_DATABASE = "test"
+    MYSQL_ROOT_USER = "root"
 
     def __init__(
         self,
@@ -64,21 +65,30 @@ class MySQLContainer(JdbcDatabaseContainer):
         """
         super().__init__(
             image=image,
-            port=self.DEFAULT_PORT,
+            port=self.MYSQL_PORT,
             username=username,
             password=password,
             dbname=dbname,
         )
 
-        # MySQL configuration options
-        self._config_options: dict[str, str] = {}
+        # Explicitly add exposed port like Java does
+        self.with_exposed_ports(self.MYSQL_PORT)
 
-        # Set environment variables for MySQL initialization
-        self.with_env("MYSQL_USER", self._username)
-        self.with_env("MYSQL_PASSWORD", self._password)
+        # Configure environment variables using Java's conditional logic
         self.with_env("MYSQL_DATABASE", self._dbname)
-        # MySQL requires a root password
-        self.with_env("MYSQL_ROOT_PASSWORD", self._password)
+        
+        # Only set MYSQL_USER if username is not root (Java logic)
+        if self._username.lower() != self.MYSQL_ROOT_USER.lower():
+            self.with_env("MYSQL_USER", self._username)
+        
+        # Handle password: empty password only allowed for root
+        if self._password:
+            self.with_env("MYSQL_PASSWORD", self._password)
+            self.with_env("MYSQL_ROOT_PASSWORD", self._password)
+        elif self._username.lower() == self.MYSQL_ROOT_USER.lower():
+            self.with_env("MYSQL_ALLOW_EMPTY_PASSWORD", "yes")
+        else:
+            raise ValueError("Empty password can be used only with the root user")
 
         # Wait for MySQL to be ready
         # MySQL logs "ready for connections" when it's ready to accept connections
@@ -88,39 +98,7 @@ class MySQLContainer(JdbcDatabaseContainer):
             .with_times(2)  # MySQL logs this twice during startup (once for each phase)
         )
 
-    def with_config_option(self, key: str, value: str) -> MySQLContainer:
-        """
-        Add a MySQL configuration option (fluent API).
 
-        Configuration options are passed as command-line arguments to mysqld.
-
-        Args:
-            key: Configuration option name (e.g., "max_connections")
-            value: Configuration option value (e.g., "200")
-
-        Returns:
-            This container instance
-        """
-        self._config_options[key] = value
-        return self
-
-    def start(self) -> MySQLContainer:  # type: ignore[override]
-        """
-        Start the MySQL container with any configured options.
-
-        Returns:
-            This container instance
-        """
-        # Build command with config options as array to avoid shell injection
-        if self._config_options:
-            cmd_parts = ["mysqld"]
-            for key, value in self._config_options.items():
-                # Use array format to prevent command injection
-                cmd_parts.append(f"--{key}={value}")
-            self.with_command(cmd_parts)
-
-        super().start()
-        return self
 
     def get_driver_class_name(self) -> str:
         """

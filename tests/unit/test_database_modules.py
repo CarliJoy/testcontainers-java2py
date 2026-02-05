@@ -177,25 +177,8 @@ class TestMySQLContainer:
         assert result is mysql
         assert mysql._username == "newuser"
 
-    def test_mysql_with_config_option(self):
-        """Test setting MySQL config option."""
-        mysql = MySQLContainer()
-        result = mysql.with_config_option("max_connections", "200")
-
-        assert result is mysql
-        assert mysql._config_options["max_connections"] == "200"
-
-    def test_mysql_multiple_config_options(self):
-        """Test setting multiple MySQL config options."""
-        mysql = MySQLContainer()
-        mysql.with_config_option("max_connections", "200")
-        mysql.with_config_option("innodb_buffer_pool_size", "256M")
-
-        assert mysql._config_options["max_connections"] == "200"
-        assert mysql._config_options["innodb_buffer_pool_size"] == "256M"
-
-    def test_mysql_environment_variables(self):
-        """Test MySQL environment variables are set correctly."""
+    def test_mysql_environment_variables_normal_user(self):
+        """Test MySQL environment variables for normal user are set correctly."""
         mysql = MySQLContainer(
             username="testuser",
             password="testpass",
@@ -206,6 +189,41 @@ class TestMySQLContainer:
         assert mysql._env["MYSQL_PASSWORD"] == "testpass"
         assert mysql._env["MYSQL_DATABASE"] == "testdb"
         assert mysql._env["MYSQL_ROOT_PASSWORD"] == "testpass"
+
+    def test_mysql_environment_variables_root_user(self):
+        """Test MySQL environment variables for root user (Java logic)."""
+        mysql = MySQLContainer(
+            username="root",
+            password="testpass",
+            dbname="testdb"
+        )
+
+        # Root user should NOT have MYSQL_USER set (Java behavior)
+        assert "MYSQL_USER" not in mysql._env
+        assert mysql._env["MYSQL_PASSWORD"] == "testpass"
+        assert mysql._env["MYSQL_DATABASE"] == "testdb"
+        assert mysql._env["MYSQL_ROOT_PASSWORD"] == "testpass"
+
+    def test_mysql_empty_password_root(self):
+        """Test MySQL allows empty password for root user."""
+        mysql = MySQLContainer(
+            username="root",
+            password="",
+            dbname="testdb"
+        )
+
+        assert "MYSQL_USER" not in mysql._env
+        assert mysql._env["MYSQL_ALLOW_EMPTY_PASSWORD"] == "yes"
+        assert mysql._env["MYSQL_DATABASE"] == "testdb"
+
+    def test_mysql_empty_password_non_root_raises(self):
+        """Test MySQL raises error for empty password with non-root user."""
+        with pytest.raises(ValueError, match="Empty password can be used only with the root user"):
+            MySQLContainer(
+                username="testuser",
+                password="",
+                dbname="testdb"
+            )
 
     def test_mysql_get_driver_class_name(self):
         """Test MySQL driver class name."""
@@ -254,9 +272,8 @@ class TestMongoDBContainer:
 
         assert mongo._port == 27017
         assert 27017 in mongo._exposed_ports
-        assert mongo._username is None
-        assert mongo._password is None
-        assert mongo._auth_database is None
+        # Java starts with replica set by default
+        assert mongo._command == ["--replSet", "docker-rs"]
 
     def test_mongodb_init_custom_image(self):
         """Test MongoDB container with custom image."""
@@ -264,27 +281,8 @@ class TestMongoDBContainer:
 
         assert mongo._image.image_name == "mongo:6"
 
-    def test_mongodb_with_authentication(self):
-        """Test MongoDB authentication configuration."""
-        mongo = MongoDBContainer()
-        result = mongo.with_authentication("admin", "myuser", "mypass")
-
-        assert result is mongo
-        assert mongo._auth_database == "admin"
-        assert mongo._username == "myuser"
-        assert mongo._password == "mypass"
-
-    def test_mongodb_authentication_env_vars(self):
-        """Test MongoDB authentication environment variables."""
-        mongo = MongoDBContainer()
-        mongo.with_authentication("admin", "testuser", "testpass")
-
-        assert mongo._env["MONGO_INITDB_ROOT_USERNAME"] == "testuser"
-        assert mongo._env["MONGO_INITDB_ROOT_PASSWORD"] == "testpass"
-        assert mongo._env["MONGO_INITDB_DATABASE"] == "admin"
-
-    def test_mongodb_get_connection_string_no_auth(self):
-        """Test MongoDB connection string without authentication."""
+    def test_mongodb_get_connection_string(self):
+        """Test MongoDB connection string (Java behavior - no auth)."""
         mongo = MongoDBContainer()
         mongo._container = MagicMock()
 
@@ -294,38 +292,39 @@ class TestMongoDBContainer:
 
         assert url == "mongodb://localhost:27017"
 
-    def test_mongodb_get_connection_string_with_auth(self):
-        """Test MongoDB connection string with authentication."""
+    def test_mongodb_get_replica_set_url(self):
+        """Test MongoDB replica set URL (Java method)."""
         mongo = MongoDBContainer()
-        mongo.with_authentication("admin", "testuser", "testpass")
         mongo._container = MagicMock()
+        mongo._container.status = "running"
 
         with patch.object(mongo, 'get_host', return_value='localhost'):
             with patch.object(mongo, 'get_mapped_port', return_value=27017):
-                url = mongo.get_connection_string()
+                with patch.object(mongo, 'is_running', return_value=True):
+                    url = mongo.get_replica_set_url("testdb")
 
-        assert url == "mongodb://testuser:testpass@localhost:27017/?authSource=admin"
+        assert url == "mongodb://localhost:27017/testdb"
 
-    def test_mongodb_get_username(self):
-        """Test getting MongoDB username."""
+    def test_mongodb_get_replica_set_url_default_db(self):
+        """Test MongoDB replica set URL with default database."""
         mongo = MongoDBContainer()
-        mongo.with_authentication("admin", "testuser", "testpass")
+        mongo._container = MagicMock()
+        mongo._container.status = "running"
 
-        assert mongo.get_username() == "testuser"
+        with patch.object(mongo, 'get_host', return_value='localhost'):
+            with patch.object(mongo, 'get_mapped_port', return_value=27017):
+                with patch.object(mongo, 'is_running', return_value=True):
+                    url = mongo.get_replica_set_url()
 
-    def test_mongodb_get_password(self):
-        """Test getting MongoDB password."""
+        assert url == "mongodb://localhost:27017/test"
+
+    def test_mongodb_get_replica_set_url_not_running(self):
+        """Test MongoDB replica set URL raises when not running."""
         mongo = MongoDBContainer()
-        mongo.with_authentication("admin", "testuser", "testpass")
 
-        assert mongo.get_password() == "testpass"
-
-    def test_mongodb_get_auth_database(self):
-        """Test getting MongoDB auth database."""
-        mongo = MongoDBContainer()
-        mongo.with_authentication("admin", "testuser", "testpass")
-
-        assert mongo.get_auth_database() == "admin"
+        with patch.object(mongo, 'is_running', return_value=False):
+            with pytest.raises(RuntimeError, match="MongoDBContainer should be started first"):
+                mongo.get_replica_set_url()
 
     def test_mongodb_wait_strategy(self):
         """Test MongoDB wait strategy is configured."""

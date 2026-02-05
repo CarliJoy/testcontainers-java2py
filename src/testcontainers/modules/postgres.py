@@ -9,6 +9,8 @@ https://github.com/testcontainers/testcontainers-java/blob/main/modules/postgres
 
 from __future__ import annotations
 
+from datetime import timedelta
+
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
 from testcontainers.waiting.log import LogMessageWaitStrategy
 
@@ -39,8 +41,8 @@ class PostgreSQLContainer(JdbcDatabaseContainer):
     """
 
     # Default configuration
-    DEFAULT_IMAGE = "postgres:16"
-    DEFAULT_PORT = 5432
+    DEFAULT_IMAGE = "postgres:9.6.12"
+    POSTGRESQL_PORT = 5432
     DEFAULT_USERNAME = "test"
     DEFAULT_PASSWORD = "test"
     DEFAULT_DATABASE = "test"
@@ -56,30 +58,37 @@ class PostgreSQLContainer(JdbcDatabaseContainer):
         Initialize a PostgreSQL container.
 
         Args:
-            image: Docker image name (default: postgres:16)
+            image: Docker image name (default: postgres:9.6.12)
             username: Database username (default: test)
             password: Database password (default: test)
             dbname: Database name (default: test)
         """
         super().__init__(
             image=image,
-            port=self.DEFAULT_PORT,
+            port=self.POSTGRESQL_PORT,
             username=username,
             password=password,
             dbname=dbname,
         )
+
+        # Explicitly add exposed port like Java does
+        self.with_exposed_ports(self.POSTGRESQL_PORT)
+
+        # Set command with fsync=off like Java does
+        self.with_command(["postgres", "-c", "fsync=off"])
 
         # Set environment variables for PostgreSQL initialization
         self.with_env("POSTGRES_USER", self._username)
         self.with_env("POSTGRES_PASSWORD", self._password)
         self.with_env("POSTGRES_DB", self._dbname)
 
-        # Wait for PostgreSQL to be ready
+        # Wait for PostgreSQL to be ready with timeout matching Java (60 seconds)
         # PostgreSQL logs "database system is ready to accept connections" when ready
         self.waiting_for(
             LogMessageWaitStrategy()
             .with_regex(r".*database system is ready to accept connections.*")
             .with_times(2)  # PostgreSQL logs this twice during startup
+            .with_startup_timeout(timedelta(seconds=60))
         )
 
     def get_driver_class_name(self) -> str:
