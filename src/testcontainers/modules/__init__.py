@@ -26,6 +26,11 @@ __all__ = [
     "MinIOContainer",
     "VaultContainer",
     "MemcachedContainer",
+    "SolrContainer",
+    "PulsarContainer",
+    "NATSContainer",
+    "ActiveMQContainer",
+    "ChromaDBContainer",
 ]
 
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
@@ -46,3 +51,8 @@ from testcontainers.modules.localstack import LocalStackContainer
 from testcontainers.modules.minio import MinIOContainer
 from testcontainers.modules.vault import VaultContainer
 from testcontainers.modules.memcached import MemcachedContainer
+from testcontainers.modules.solr import SolrContainer
+from testcontainers.modules.pulsar import PulsarContainer
+from testcontainers.modules.nats import NATSContainer
+from testcontainers.modules.activemq import ActiveMQContainer
+from testcontainers.modules.chromadb import ChromaDBContainer
