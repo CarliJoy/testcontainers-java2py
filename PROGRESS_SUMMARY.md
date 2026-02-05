@@ -10,14 +10,14 @@ This document tracks the progress of converting the Testcontainers Java library 
 
 | Metric | Count |
 |--------|-------|
-| **Python Files Created** | 19 |
-| **Lines of Python Code** | ~3,500 |
-| **Test Files** | 8 |
-| **Test Cases** | 148 |
+| **Python Files Created** | 27 |
+| **Lines of Python Code** | ~5,400 |
+| **Test Files** | 10 |
+| **Test Cases** | 193 |
 | **Test Pass Rate** | 100% |
-| **Java Files Converted** | ~45 |
-| **Original Java Lines** | ~6,500+ |
-| **Code Reduction** | ~45% |
+| **Java Files Converted** | ~60 |
+| **Original Java Lines** | ~8,400+ |
+| **Code Reduction** | ~36% |
 
 ## ✅ Implemented Features
 
@@ -66,7 +66,27 @@ This document tracks the progress of converting the Testcontainers Java library 
 - [x] **DockerHealthcheckWaitStrategy** - Docker HEALTHCHECK based
 - [x] **LogMessageWaitStrategy** - Log pattern matching
 - [x] **HostPortWaitStrategy** - Port availability checking
+- [x] **HttpWaitStrategy** - HTTP/HTTPS endpoint checking with TLS, auth, headers
+- [x] **ShellStrategy** - Wait for shell command success
+- [x] **WaitAllStrategy** - Composite wait for multiple strategies
 - [x] **WaitStrategyTarget Protocol** - Target container interface
+
+### Output and Logging
+- [x] **OutputFrame** - Line-based container output handling
+- [x] **OutputType** - STDOUT/STDERR/END enum
+- [x] **LogConsumer Protocol** - Output consumer interface
+- [x] **Slf4jLogConsumer** - Python logger integration with prefix and extra context
+- [x] **PrintLogConsumer** - Simple stdout printing
+
+### Docker Compose
+- [x] **ComposeContainer** - Docker Compose V2 support
+- [x] **Multi-file support** - Multiple compose files
+- [x] **Service selection** - Start specific services
+- [x] **Environment variables** - Pass env vars to compose
+- [x] **Pull and build** - Control image pulling/building
+- [x] **Service wait strategies** - Wait for specific services
+- [x] **Port mapping queries** - Get service ports
+- [x] **Context manager** - Automatic start/stop
 
 ### Image Handling
 - [x] **ImageData** - Image metadata with creation time
@@ -97,34 +117,25 @@ This document tracks the progress of converting the Testcontainers Java library 
 - [ ] **Container Reuse** - Singleton containers across tests
 - [ ] **Link Containers** - Legacy container linking
 - [ ] **FixedHostPortGenericContainer** - Fixed port mapping
-- [ ] **SocatContainer** - Port forwarding helper
-- [ ] **Container Modification** - Modify running containers
-
-### Docker Compose Support
-- [ ] **DockerComposeContainer** - Multi-container orchestration
-- [ ] **ComposeContainer** - Compose file support
-- [ ] **ComposeDelegate** - Compose command execution
-- [ ] **LocalDockerCompose** - Local compose binary
-- [ ] **ContainerisedDockerCompose** - Containerized compose
 
 ### Advanced Wait Strategies
-- [ ] **HttpWaitStrategy** - HTTP endpoint checking
-- [ ] **ShellWaitStrategy** - Shell command execution
-- [ ] **WaitAllStrategy** - Wait for multiple conditions
-- [ ] **WaitForMultiple** - Composite wait strategies
+- [ ] **ExecWaitStrategy** - Wait for command execution (different from Shell)
+- [ ] **LogMessageWaitStrategy.Times** - Times enum for occurrences
 
 ### Logging & Output
-- [ ] **LogConsumer** - Stream container logs
-- [ ] **Slf4jLogConsumer** - Log to logging framework
-- [ ] **WaitingConsumer** - Wait for log patterns
-- [ ] **ToStringConsumer** - Collect logs to string
-- [ ] **OutputFrame** - Log frame handling
+- [ ] **ToStringConsumer** - Accumulate output to string
+- [ ] **WaitingConsumer** - Wait for specific output patterns
+- [ ] **FrameConsumerResultCallback** - Advanced callback handling
+- [ ] **Container.followOutput()** - Real-time log following integration
 
-### Networking
-- [ ] **Network** - Custom network creation
-- [ ] **Network.NetworkImpl** - Network implementation
-- [ ] **NetworkMode** - Network mode configuration
-- [ ] **NetworkAlias** - Container network aliases
+### Docker Compose Advanced Features
+- [ ] **DockerComposeContainer** - Legacy V1 compose support
+- [ ] **LocalDockerCompose** - Local docker-compose binary
+- [ ] **ContainerisedDockerCompose** - Containerized compose
+- [ ] **Service scaling** - Scale services up/down
+- [ ] **Profile support** - Compose profiles
+- [ ] **Custom compose options** - Additional command options
+- [ ] **Compose file validation** - ParsedDockerComposeFile
 
 ### Advanced Image Features
 - [ ] **FutureContainer** - Async container preparation
