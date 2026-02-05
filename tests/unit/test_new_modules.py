@@ -10,37 +10,6 @@ from testcontainers.modules.cockroachdb import CockroachDBContainer
 from testcontainers.modules.selenium import BrowserWebDriverContainer, BrowserType
 
 
-# Fixtures
-
-@pytest.fixture
-def mock_docker_client():
-    """Create a mock Docker client."""
-    client = MagicMock()
-    client.containers = MagicMock()
-    return client
-
-
-@pytest.fixture
-def mock_container():
-    """Create a mock Docker container."""
-    container = MagicMock()
-    container.id = "test-container-id"
-    container.attrs = {
-        "NetworkSettings": {
-            "Ports": {
-                "8123/tcp": [{"HostPort": "32768"}],
-                "9000/tcp": [{"HostPort": "32769"}],
-                "26257/tcp": [{"HostPort": "32770"}],
-                "8080/tcp": [{"HostPort": "32771"}],
-                "4444/tcp": [{"HostPort": "32772"}],
-                "5900/tcp": [{"HostPort": "32773"}],
-            }
-        }
-    }
-    container.status = "running"
-    return container
-
-
 # ClickHouse Tests
 
 class TestClickHouseContainer:
