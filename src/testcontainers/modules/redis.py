@@ -74,9 +74,9 @@ class RedisContainer(GenericContainer):
         Returns:
             This container instance
         """
-        # If password is set, add it to command
+        # If password is set, add it to command as array to avoid shell injection
         if self._password:
-            self.with_command(f"redis-server --requirepass {self._password}")
+            self.with_command(["redis-server", "--requirepass", self._password])
 
         super().start()
         return self

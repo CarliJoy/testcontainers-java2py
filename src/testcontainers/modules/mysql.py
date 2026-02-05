@@ -111,10 +111,11 @@ class MySQLContainer(JdbcDatabaseContainer):
         Returns:
             This container instance
         """
-        # Build command with config options
+        # Build command with config options as array to avoid shell injection
         if self._config_options:
             cmd_parts = ["mysqld"]
             for key, value in self._config_options.items():
+                # Use array format to prevent command injection
                 cmd_parts.append(f"--{key}={value}")
             self.with_command(cmd_parts)
 
