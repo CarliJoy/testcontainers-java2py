@@ -10,14 +10,14 @@ This document tracks the progress of converting the Testcontainers Java library 
 
 | Metric | Count |
 |--------|-------|
-| **Python Files Created** | 27 |
-| **Lines of Python Code** | ~5,400 |
-| **Test Files** | 10 |
-| **Test Cases** | 193 |
+| **Python Files Created** | 28 |
+| **Lines of Python Code** | ~5,900 |
+| **Test Files** | 11 |
+| **Test Cases** | 204 |
 | **Test Pass Rate** | 100% |
-| **Java Files Converted** | ~60 |
-| **Original Java Lines** | ~8,400+ |
-| **Code Reduction** | ~36% |
+| **Java Files Converted** | ~65 |
+| **Original Java Lines** | ~9,000+ |
+| **Code Reduction** | ~34% |
 
 ## ✅ Implemented Features
 
@@ -59,6 +59,14 @@ This document tracks the progress of converting the Testcontainers Java library 
 - [x] **with_create_container_modifier()** - Custom container configuration
 - [x] **Modifier Chaining** - Multiple modifiers support
 - [x] **SocatContainer** - TCP proxy for port exposure
+
+### Container Reuse
+- [x] **with_reuse()** - Enable container reuse
+- [x] **Hash-based matching** - Configuration and file hashing
+- [x] **Reuse labels** - org.testcontainers.hash and copied_files.hash
+- [x] **Configuration support** - Environment variable and TOML config
+- [x] **Lifecycle hooks** - container_is_starting/started with reused flag
+- [x] **Automatic container discovery** - Find and reuse existing containers
 
 ### Wait Strategies
 - [x] **WaitStrategy Protocol** - Base interface
@@ -114,7 +122,6 @@ This document tracks the progress of converting the Testcontainers Java library 
 ## ❌ Missing Features (Compared to Java)
 
 ### Core Container Features
-- [ ] **Container Reuse** - Singleton containers across tests
 - [ ] **Link Containers** - Legacy container linking
 - [ ] **FixedHostPortGenericContainer** - Fixed port mapping
 
@@ -292,15 +299,15 @@ The Java library has **63 specialized modules** for different technologies. None
 - [x] Configuration system
 - [x] Image name substitution
 
-### Phase 2: Essential Features (Next)
-- [ ] Docker Compose support
-- [ ] HTTP wait strategy
-- [ ] Log consumers
-- [ ] Network customization
-- [ ] File copying
-- [ ] Container reuse
+### Phase 2: Essential Features (✅ COMPLETE)
+- [x] Docker Compose support
+- [x] HTTP wait strategy
+- [x] Log consumers
+- [x] Network customization
+- [x] File copying
+- [x] Container reuse
 
-### Phase 3: Testing Integration
+### Phase 3: Testing Integration (Next)
 - [ ] Pytest fixtures for containers
 - [ ] Pytest markers for test configuration
 - [ ] Automatic cleanup hooks
@@ -328,7 +335,7 @@ The Java library has **63 specialized modules** for different technologies. None
 ### Code Quality
 - ✅ **Type Hints**: 100% coverage with full PEP 484 typing
 - ✅ **Docstrings**: All public APIs documented
-- ✅ **Tests**: 123 tests with 100% pass rate
+- ✅ **Tests**: 204 tests with 100% pass rate
 - ✅ **Linting**: Follows PEP 8 standards
 - ✅ **Python 3.9+**: Modern Python features with `__future__` annotations
 
@@ -339,12 +346,12 @@ The Java library has **63 specialized modules** for different technologies. None
 - ✅ **No Java Baggage**: Pythonic patterns, not Java translations
 
 ### Feature Parity
-- **Core Library**: ~40% complete
-  - Essential features: ✅ Done
-  - Advanced features: ⏳ In progress
-  - Enterprise features: ✅ Done (ImageNameSubstitutor)
+- **Core Library**: ~55% complete
+  - Essential features: ✅ Done (Phase 1 & 2)
+  - Advanced features: ⏳ In progress (Phase 3)
+  - Enterprise features: ✅ Done (ImageNameSubstitutor, Container Reuse)
 - **Modules**: 0% complete (0/63 modules)
-- **Overall Project**: ~5% complete
+- **Overall Project**: ~7% complete
 
 ## 🔗 Related Documentation
 
