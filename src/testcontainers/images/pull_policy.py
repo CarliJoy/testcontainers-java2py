@@ -22,6 +22,10 @@ logger = logging.getLogger(__name__)
 class PullPolicy:
     """
     Factory for creating common image pull policies.
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/images/PullPolicy.java
     """
     
     _default_policy: ImagePullPolicy | None = None

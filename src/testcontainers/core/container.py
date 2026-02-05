@@ -26,6 +26,10 @@ class ExecResult:
         exit_code: The exit code of the command
         stdout: Standard output from the command
         stderr: Standard error from the command
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/containers/Container.java
     """
     exit_code: int
     stdout: str
@@ -39,6 +43,10 @@ class Container(Protocol[SELF]):
     This protocol specifies the interface that all container implementations
     must provide. It includes methods for configuration, lifecycle management,
     and state querying.
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/containers/Container.java
     """
     
     def self(self) -> SELF:

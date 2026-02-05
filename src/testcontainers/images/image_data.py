@@ -17,6 +17,10 @@ class ImageData:
     
     Attributes:
         created_at: When the image was created
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/images/ImageData.java
     """
     
     created_at: datetime

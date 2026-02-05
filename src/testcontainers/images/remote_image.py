@@ -28,6 +28,10 @@ class RemoteDockerImage:
     
     This class handles the logic for determining whether to pull an image
     and performing the pull operation.
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/images/RemoteDockerImage.java
     """
     
     def __init__(

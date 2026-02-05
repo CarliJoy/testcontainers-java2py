@@ -23,6 +23,10 @@ class AbstractImagePullPolicy(ABC, ImagePullPolicy):
     
     Provides common functionality for checking local image cache
     and determining whether to pull.
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/images/AbstractImagePullPolicy.java
     """
     
     def __init__(self):
@@ -75,6 +79,10 @@ class AlwaysPullPolicy(ImagePullPolicy):
     
     Useful for obtaining the latest version of an image with a static tag
     like 'latest'.
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/images/AlwaysPullPolicy.java
     """
     
     def should_pull(self, image_name: str) -> bool:
@@ -89,6 +97,10 @@ class DefaultPullPolicy(AbstractImagePullPolicy):
     
     Pulls images if they don't exist locally, but uses local images
     if they're already available.
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/images/DefaultPullPolicy.java
     """
     
     def _should_pull_cached(self, image_name: str, local_image_data: ImageData) -> bool:
@@ -101,6 +113,10 @@ class AgeBasedPullPolicy(AbstractImagePullPolicy):
     Age-based pull policy.
     
     Pulls images if they're older than a specified maximum age.
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/images/AgeBasedPullPolicy.java
     """
     
     def __init__(self, max_age: timedelta):

@@ -20,6 +20,10 @@ class LogMessageWaitStrategy(AbstractWaitStrategy):
     
     This strategy monitors container logs and waits until a message matching
     the specified regular expression appears a specified number of times.
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/containers/wait/strategy/LogMessageWaitStrategy.java
     """
     
     def __init__(self):

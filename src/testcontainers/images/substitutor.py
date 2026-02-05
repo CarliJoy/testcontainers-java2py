@@ -24,6 +24,10 @@ class ImageNameSubstitutor(Protocol):
     Protocol for image name substitution.
 
     Implementations can transform Docker image names before they are used.
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/utility/ImageNameSubstitutor.java
     """
 
     def substitute(self, image_name: str) -> str:
@@ -49,7 +53,11 @@ class ImageNameSubstitutor(Protocol):
 
 
 class NoOpImageNameSubstitutor:
-    """Pass-through substitutor that returns image names unchanged."""
+    """Pass-through substitutor that returns image names unchanged.
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/utility/ImageNameSubstitutor.java
+    """
 
     def substitute(self, image_name: str) -> str:
         """Return the image name unchanged."""
@@ -70,6 +78,10 @@ class PrefixingImageNameSubstitutor:
     Examples:
         mysql:8.0 -> registry.corp.com/mirror/mysql:8.0
         postgres:13 -> registry.corp.com/mirror/postgres:13
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/utility/PrefixingImageNameSubstitutor.java
     """
 
     def __init__(self, prefix: str):
@@ -118,6 +130,10 @@ class ConfigurableImageNameSubstitutor:
     Example mappings:
         postgres:13 -> registry.corp.com/custom/postgres:13-patched
         mysql:8.0 -> registry.corp.com/approved/mysql:8.0
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/utility/ConfigurationFileImageNameSubstitutor.java
     """
 
     def __init__(self, mappings: Optional[dict[str, str]] = None):

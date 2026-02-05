@@ -10,7 +10,11 @@ from enum import Enum
 
 
 class BindMode(Enum):
-    """Possible modes for binding storage volumes."""
+    """Possible modes for binding storage volumes.
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/containers/BindMode.java
+    """
     
     READ_ONLY = "ro"
     READ_WRITE = "rw"
@@ -21,7 +25,11 @@ class BindMode(Enum):
 
 
 class SelinuxContext(Enum):
-    """Possible contexts for use with SELinux."""
+    """Possible contexts for use with SELinux.
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/containers/SelinuxContext.java
+    """
     
     SHARED = "z"
     SINGLE = "Z"
@@ -33,7 +41,11 @@ class SelinuxContext(Enum):
 
 
 class InternetProtocol(Enum):
-    """The IP protocols supported by Docker."""
+    """The IP protocols supported by Docker.
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/containers/InternetProtocol.java
+    """
     
     TCP = "tcp"
     UDP = "udp"

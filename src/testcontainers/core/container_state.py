@@ -16,6 +16,10 @@ class ContainerState(Protocol):
     
     This protocol provides methods to check the state of a container,
     get port mappings, and retrieve container information.
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/containers/ContainerState.java
     """
     
     STATE_HEALTHY = "healthy"

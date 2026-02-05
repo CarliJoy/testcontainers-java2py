@@ -22,6 +22,10 @@ class HostPortWaitStrategy(AbstractWaitStrategy):
     This strategy attempts to establish socket connections to the specified
     ports on the container host. If no ports are specified, it checks all
     exposed ports.
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/containers/wait/strategy/HostPortWaitStrategy.java
     """
     
     def __init__(self):

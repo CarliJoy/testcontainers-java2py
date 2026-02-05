@@ -3,6 +3,10 @@ Docker client factory and wrapper for Testcontainers.
 
 This module provides a singleton Docker client factory that manages Docker client
 connections and configurations. It's converted from the Java testcontainers library.
+
+Java sources:
+- https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/DockerClientFactory.java
+- https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/utility/DelegatingDockerClient.java
 """
 
 from __future__ import annotations
@@ -26,6 +30,9 @@ class DockerClientWrapper:
     Simple wrapper around Docker client.
     
     Equivalent to Java's DelegatingDockerClient - provides a simple delegation pattern.
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/utility/DelegatingDockerClient.java
     """
 
     def __init__(self, client: DockerClient):
@@ -60,6 +67,9 @@ class LazyDockerClient:
     Lazy-loading Docker client that only initializes when first accessed.
     
     Equivalent to Java's lazyClient() method in DockerClientFactory.
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/LazyDockerClient.java
     """
 
     def __init__(self, factory: DockerClientFactory):
@@ -90,6 +100,9 @@ class DockerClientFactory:
     is determined on first use and cached thereafter.
     
     Converted from Java's DockerClientFactory class.
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/DockerClientFactory.java
     """
 
     # Class-level constants

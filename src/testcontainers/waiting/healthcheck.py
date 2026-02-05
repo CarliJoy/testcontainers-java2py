@@ -21,6 +21,10 @@ class DockerHealthcheckWaitStrategy(AbstractWaitStrategy):
     it reports as healthy.
     
     See: https://docs.docker.com/engine/reference/builder/#healthcheck
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/containers/wait/strategy/DockerHealthcheckWaitStrategy.java
     """
     
     def _wait_until_ready(self) -> None:

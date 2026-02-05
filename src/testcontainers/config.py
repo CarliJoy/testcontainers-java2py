@@ -30,7 +30,11 @@ except ImportError:
 
 
 class TestcontainersConfig:
-    """Configuration manager for testcontainers."""
+    """Configuration manager for testcontainers.
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/utility/TestcontainersConfiguration.java
+    """
 
     _instance: Optional[TestcontainersConfig] = None
     _config: dict[str, Any]

@@ -19,6 +19,10 @@ class WaitStrategyTarget(Protocol):
     Protocol for container targets that wait strategies can operate on.
     
     This extends ContainerState with additional methods needed for waiting.
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/containers/wait/strategy/WaitStrategy.java
     """
     
     def get_container_id(self) -> str:
@@ -66,6 +70,10 @@ class WaitStrategy(Protocol):
     Protocol for wait strategies.
     
     A wait strategy determines when a container is considered ready to use.
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/containers/wait/strategy/WaitStrategy.java
     """
     
     def wait_until_ready(self, wait_strategy_target: WaitStrategyTarget) -> None:
@@ -98,6 +106,10 @@ class AbstractWaitStrategy(ABC):
     Abstract base class for wait strategies.
     
     Provides common functionality for concrete wait strategy implementations.
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/containers/wait/strategy/AbstractWaitStrategy.java
     """
     
     def __init__(self):

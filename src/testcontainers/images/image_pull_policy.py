@@ -16,6 +16,10 @@ class ImagePullPolicy(Protocol):
     
     An image pull policy determines whether an image should be pulled
     from a registry, even if it exists locally.
+    
+    
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/images/ImagePullPolicy.java
     """
     
     def should_pull(self, image_name: str) -> bool:

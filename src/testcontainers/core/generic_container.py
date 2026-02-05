@@ -34,6 +34,9 @@ class GenericContainer(Container["GenericContainer"], ContainerState, WaitStrate
     for managing Docker containers including lifecycle, port mappings, environment
     variables, volumes, and wait strategies.
     
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/core/src/main/java/org/testcontainers/containers/GenericContainer.java
+    
     Example:
         >>> container = GenericContainer("nginx:latest")
         >>> container.with_exposed_ports(80)
