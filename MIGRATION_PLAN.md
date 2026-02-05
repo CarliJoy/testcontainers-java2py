@@ -153,12 +153,12 @@
 
    **Python Package Layout:**
    ```
-   testcontainers-python/
-   ├── pyproject.toml          # Project metadata (PEP 621)
+   testcontainers_python/          # Or use 'testcontainers' as package name
+   ├── pyproject.toml              # Project metadata (PEP 621)
    ├── README.md
-   ├── CONVERSION_NOTES.md     # Java→Python mapping notes
+   ├── CONVERSION_NOTES.md         # Java→Python mapping notes
    ├── src/
-   │   └── testcontainers/
+   │   └── testcontainers/         # Main package (underscores only)
    │       ├── __init__.py
    │       ├── core/
    │       │   ├── __init__.py
@@ -317,12 +317,15 @@
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Create new Python project
-mkdir testcontainers-python
-cd testcontainers-python
+# Note: Use underscores for package names (hyphens not allowed in Python)
+mkdir testcontainers_python
+cd testcontainers_python
 uv init --lib  # Creates package structure
 
-# Note: This creates a package named after the directory (testcontainers-python)
-# You can rename in pyproject.toml later if desired
+# Or simply:
+# mkdir my-project && cd my-project
+# uv init --lib
+# Then configure package name as 'testcontainers' in pyproject.toml
 
 # Create virtual environment
 uv venv
@@ -459,8 +462,8 @@ ruff format .
 - `String` → `str`
 - `int`, `Integer` → `int`
 - `boolean` → `bool`
-- `List<T>` → `list[T]` (Python 3.9+, preferred) or `List[T]` (typing module, for 3.8)
-- `Map<K,V>` → `dict[K, V]` (Python 3.9+, preferred) or `Dict[K, V]` (typing module)
+- `List<T>` → `list[T]` (Python 3.9+, preferred)
+- `Map<K,V>` → `dict[K, V]` (Python 3.9+, preferred)
 - `Optional<T>` → `Optional[T]` or `T | None` (Python 3.10+)
 - `void method()` → `def method() -> None:`
 - `@Override` → no equivalent (just document in docstring)
