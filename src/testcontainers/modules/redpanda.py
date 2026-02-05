@@ -58,7 +58,7 @@ class RedpandaContainer(GenericContainer):
     """
 
     # Default configuration
-    DEFAULT_IMAGE = "redpandadata/redpanda:latest"
+    DEFAULT_IMAGE = "redpandadata/redpanda:v23.3.1"
     DEFAULT_BROKER_PORT = 9092
     DEFAULT_ADMIN_PORT = 9644
     DEFAULT_SCHEMA_REGISTRY_PORT = 8081

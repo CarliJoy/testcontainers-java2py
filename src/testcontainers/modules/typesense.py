@@ -27,7 +27,7 @@ class TypesenseContainer(GenericContainer):
     Example:
         >>> with TypesenseContainer() as typesense:
         ...     host = typesense.get_host()
-        ...     port = typesense.get_http_port()
+        ...     port = typesense.get_port()
         ...     api_key = typesense.get_api_key()
         ...     # Connect to Typesense using the client library
 
@@ -35,7 +35,7 @@ class TypesenseContainer(GenericContainer):
         >>> typesense = TypesenseContainer("typesense/typesense:27.0")
         >>> typesense.with_api_key("my_secret_api_key")
         >>> typesense.start()
-        >>> url = f"http://{typesense.get_host()}:{typesense.get_http_port()}"
+        >>> url = f"http://{typesense.get_host()}:{typesense.get_port()}"
 
     Exposed ports:
         - 8108: HTTP API
