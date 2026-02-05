@@ -151,7 +151,7 @@
    - Type hints with `typing` module
    - Dataclasses for configuration objects
    - Async/await support (optional, for advanced users)
-   - Pattern matching (Python 3.10+) for container state handling
+   - Pattern matching (Python 3.10+) for container lifecycle states (starting, running, stopped, failed)
    - `pathlib` for file operations
    
    **Backward Compatibility:**
@@ -280,7 +280,7 @@
 
 **Initial Setup:**
 ```bash
-# Install uv
+# Install uv (see https://docs.astral.sh/uv/)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Clone testcontainers-python
@@ -289,8 +289,16 @@ git clone https://github.com/testcontainers/testcontainers-python.git
 # Create virtual environment and install dependencies
 cd testcontainers-python
 uv venv
-source .venv/bin/activate  # Linux/macOS
-# On Windows: .venv\Scripts\activate.bat (cmd) or .venv\Scripts\Activate.ps1 (PowerShell)
+
+# Activate virtual environment
+# Linux/macOS:
+source .venv/bin/activate
+# Windows (cmd):
+.venv/Scripts/activate.bat
+# Windows (PowerShell):
+.venv/Scripts/Activate.ps1
+
+# Install project in editable mode with dev dependencies
 uv pip install -e ".[dev]"
 ```
 
