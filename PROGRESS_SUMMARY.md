@@ -22,7 +22,7 @@
 - Tests: 15 tests + 16 docker_client = 31 tests, all passing ✅
 - Documentation: Complete
 
-### Phase 3: Wait Strategies (Completed) ⭐ NEW
+### Phase 3: Wait Strategies (Completed)
 - **WaitStrategy Protocol** - Base interface for all wait strategies
 - **WaitStrategyTarget Protocol** - Container target interface
 - **AbstractWaitStrategy** - Base implementation with timeout support
@@ -31,6 +31,20 @@
 - **HostPortWaitStrategy** - Wait for ports to be available
 
 - Tests: 16 new tests + 31 existing = 47 tests, all passing ✅
+- Documentation: Complete
+
+### Phase 4: Image Handling (Completed) ⭐ NEW
+- **ImagePullPolicy Protocol** - Base interface for pull policies
+- **ImageData** - Image metadata with creation time
+- **Pull Policy Implementations:**
+  - AbstractImagePullPolicy - Base with caching
+  - AlwaysPullPolicy - Always pull images
+  - DefaultPullPolicy - Pull if not cached
+  - AgeBasedPullPolicy - Pull if too old
+- **PullPolicy Factory** - Convenience methods for creating policies
+- **RemoteDockerImage** - Image pulling with retry logic
+
+- Tests: 21 new tests + 47 existing = 68 tests, all passing ✅
 - Documentation: Complete
 
 ### Test Infrastructure Improvements
@@ -46,9 +60,10 @@
 | Docker Client | ~918 | 316 | 65% | 16 ✅ |
 | Container Types | 954 | 380 | 60% | 15 ✅ |
 | Wait Strategies | ~365 | ~410 | -12%* | 16 ✅ |
-| **Total** | **2,237** | **1,106** | **51%** | **47 ✅** |
+| Image Handling | ~417 | ~470 | -13%* | 21 ✅ |
+| **Total** | **2,654** | **1,576** | **41%** | **68 ✅** |
 
-*Wait strategies are slightly more verbose in Python due to explicit type hints and docstrings
+*Some modules slightly more verbose in Python due to explicit type hints and comprehensive docstrings
 
 ## 📁 Current Project Structure
 
@@ -61,19 +76,27 @@ src/testcontainers/
 │   ├── container_types.py         ✅ Complete
 │   ├── container.py               ✅ Complete
 │   └── container_state.py         ✅ Complete
-└── waiting/                       ✅ NEW
+├── waiting/                       ✅ Complete
+│   ├── __init__.py
+│   ├── wait_strategy.py
+│   ├── healthcheck.py
+│   ├── log.py
+│   └── port.py
+└── images/                        ✅ NEW - Complete
     ├── __init__.py
-    ├── wait_strategy.py           ✅ Complete
-    ├── healthcheck.py             ✅ Complete
-    ├── log.py                     ✅ Complete
-    └── port.py                    ✅ Complete
+    ├── image_pull_policy.py
+    ├── image_data.py
+    ├── policies.py
+    ├── pull_policy.py
+    └── remote_image.py
 
 tests/unit/
 ├── __init__.py
 ├── test_docker_client.py         ✅ 16 tests
 ├── test_container_types.py       ✅ 15 tests
 ├── test_container.py             ✅ 3 tests (ExecResult)
-└── test_wait_strategies.py       ✅ 16 tests
+├── test_wait_strategies.py       ✅ 16 tests
+└── test_images.py                ✅ 21 tests
 
 examples/
 └── docker_client_example.py      ✅ Working demo
@@ -81,42 +104,41 @@ examples/
 
 ## 🎯 Next Steps (Priority Order)
 
-According to `GENERIC_CONTAINER_MAPPING.md`, the next conversions needed are:
+According to the conversion plan, the next major milestone is:
 
-### Phase 4: Image Handling (Next Priority)
-These are needed by GenericContainer for image management.
+### Phase 5: GenericContainer Core (Next Priority)
+Now that all dependencies are complete, we can implement the main container class!
 
 **Files to Convert:**
-1. `images/RemoteDockerImage.java` → `images/remote_image.py`
-2. `images/ImagePullPolicy.java` → `images/image_pull_policy.py`
+1. `GenericContainer.java` (1,527 lines) → `generic_container.py`
+2. `ContainerDef.java` (304 lines) → Part of generic_container.py
 
-**Estimated Effort:** Small-Medium
+**Dependencies Ready:**
+- ✅ Docker Client
+- ✅ Container Types & Protocols
+- ✅ Wait Strategies
+- ✅ Image Handling
 
-### Phase 5: GenericContainer Core
-Once the above are complete, we can implement:
-1. `GenericContainer.java` → `generic_container.py` (main class)
-2. `ContainerDef.java` → Part of generic_container.py
+**Estimated Effort:** Large but all dependencies are ready
 
-**Estimated Effort:** Large (1,527 lines Java)
-
-### Phase 6: Network Support
+### Phase 6: Network Support (Later)
 **Files to Convert:**
 1. `Network.java` → `network.py`
 
-**Estimated Effort:** Small-Medium
+**Estimated Effort:** Medium
 
 ## 📝 Recommended Next Action
 
-**Start with Image Handling** because:
-1. Essential dependency for GenericContainer
-2. Relatively self-contained (easier to test)
-3. Clear interface patterns
-4. Smaller scope than GenericContainer itself
+**Start with GenericContainer** because:
+1. All dependencies are now complete
+2. It's the core functionality users need
+3. Enables actual container usage
+4. Can be implemented incrementally
 
-**Command to start:**
+**Command to analyze:**
 ```bash
-# Look at image files
-ls -la core/src/main/java/org/testcontainers/images/
+# Review GenericContainer structure
+wc -l core/src/main/java/org/testcontainers/containers/GenericContainer.java
 ```
 
 ## 🛠️ Development Workflow
@@ -138,7 +160,8 @@ For each new component:
 ✅ Pytest fixtures for test setup/teardown
 ✅ Comprehensive docstrings
 ✅ Context managers for resource management (planned)
-✅ Simplified dependencies (no ducttape, etc.)
+✅ Simplified dependencies (standard library + docker-py)
+✅ Simple retry logic (no complex frameworks)
 
 ## 📚 Documentation Files
 
@@ -148,19 +171,21 @@ For each new component:
 - `DOCKER_CLIENT_README.md` - Docker client usage guide
 - `CONVERSION_SUMMARY.md` - Docker client summary
 - `CONTAINER_TYPES_CONVERSION.md` - Container types conversion details
-- `WAIT_STRATEGIES_CONVERSION.md` - Wait strategies conversion details ⭐ NEW
+- `WAIT_STRATEGIES_CONVERSION.md` - Wait strategies conversion details
+- `IMAGE_HANDLING_CONVERSION.md` - Image handling conversion details ⭐ NEW
 - `PROGRESS_SUMMARY.md` - This file (overall progress)
 
 All documentation is up to date! ✅
 
 ## 🚀 Ready to Continue
 
-The foundation is solid and growing. We have:
+The foundation is complete and solid! We have:
 - ✅ Docker client infrastructure working
 - ✅ Type system and protocols defined
 - ✅ Enums for Docker operations
-- ✅ Wait strategies for container readiness ⭐ NEW
+- ✅ Wait strategies for container readiness
+- ✅ Image handling with pull policies ⭐ NEW
 - ✅ Test framework established
 - ✅ Clean code structure
 
-**Next: Convert Image Handling** to prepare for GenericContainer implementation.
+**Next: Implement GenericContainer** - The core container class that brings everything together!
