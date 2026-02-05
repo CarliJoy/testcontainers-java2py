@@ -9,9 +9,12 @@ from __future__ import annotations
 import logging
 import time
 from datetime import timedelta
-from typing import Optional, Any, Sequence
+from typing import Optional, Any, Sequence, TYPE_CHECKING
 
 from docker import DockerClient
+
+if TYPE_CHECKING:
+    from testcontainers.core.network import Network
 from docker.models.containers import Container as DockerContainer
 from docker.errors import NotFound, APIError
 
@@ -85,7 +88,18 @@ class GenericContainer(Container["GenericContainer"], ContainerState, WaitStrate
         self._name: Optional[str] = None
         self._labels: dict[str, str] = {}
         self._network_mode: Optional[str] = None
+        self._network: Optional[Network] = None
+        self._network_aliases: list[str] = []
         self._privileged: bool = False
+        
+        # Dependencies
+        self._dependencies: list[Container] = []
+        
+        # File copying
+        self._copy_to_container: dict[str, str] = {}  # source -> container_path
+        
+        # Container modifiers
+        self._create_container_modifiers: list = []
         
         # Wait strategy
         self._wait_strategy: WaitStrategy = HostPortWaitStrategy()
@@ -252,6 +266,76 @@ class GenericContainer(Container["GenericContainer"], ContainerState, WaitStrate
         self._privileged = privileged
         return self
     
+    def with_network(self, network: Network) -> GenericContainer:
+        """
+        Connect container to a network (fluent API).
+        
+        Args:
+            network: Network instance to connect to
+            
+        Returns:
+            This container instance
+        """
+        self._network = network
+        return self
+    
+    def with_network_aliases(self, *aliases: str) -> GenericContainer:
+        """
+        Set network aliases for the container (fluent API).
+        
+        Args:
+            aliases: Network aliases for the container
+            
+        Returns:
+            This container instance
+        """
+        self._network_aliases.extend(aliases)
+        return self
+    
+    def depends_on(self, *containers: Container) -> GenericContainer:
+        """
+        Add container dependencies (fluent API).
+        
+        This ensures that the specified containers are started before this container.
+        
+        Args:
+            containers: Container instances to depend on
+            
+        Returns:
+            This container instance
+        """
+        self._dependencies.extend(containers)
+        return self
+    
+    def with_copy_file_to_container(self, source: str, target: str) -> GenericContainer:
+        """
+        Copy a file or directory to the container before starting (fluent API).
+        
+        Args:
+            source: Source path on host
+            target: Target path in container
+            
+        Returns:
+            This container instance
+        """
+        self._copy_to_container[source] = target
+        return self
+    
+    def with_create_container_modifier(self, modifier: Any) -> GenericContainer:
+        """
+        Add a container creation modifier (fluent API).
+        
+        Modifiers allow custom configuration of the container before creation.
+        
+        Args:
+            modifier: Callable that modifies container creation parameters
+            
+        Returns:
+            This container instance
+        """
+        self._create_container_modifiers.append(modifier)
+        return self
+    
     def waiting_for(self, wait_strategy: WaitStrategy) -> GenericContainer:
         """
         Set the wait strategy (fluent API).
@@ -280,6 +364,12 @@ class GenericContainer(Container["GenericContainer"], ContainerState, WaitStrate
             return self
         
         try:
+            # Start dependencies first
+            for dependency in self._dependencies:
+                if not dependency.is_running():
+                    logger.info(f"Starting dependency container: {dependency}")
+                    dependency.start()
+            
             # Resolve image (pull if necessary)
             image_name = self._image.resolve()
             logger.info(f"Creating container for image: {image_name}")
@@ -299,24 +389,55 @@ class GenericContainer(Container["GenericContainer"], ContainerState, WaitStrate
             labels = dict(self._labels)
             labels.update(DockerClientFactory.marker_labels())
             
+            # Prepare network configuration
+            network = None
+            networking_config = None
+            if self._network:
+                network = self._network.get_id()
+                if self._network_aliases:
+                    networking_config = {
+                        network: {
+                            "Aliases": self._network_aliases
+                        }
+                    }
+            
             # Create container
-            self._container = self._docker_client.containers.create(
-                image_name,
-                command=self._command,
-                entrypoint=self._entrypoint,
-                environment=self._env,
-                ports=ports,
-                volumes=self._volumes,
-                working_dir=self._working_dir,
-                name=self._name,
-                labels=labels,
-                network_mode=self._network_mode,
-                privileged=self._privileged,
-                detach=True,
-            )
+            create_kwargs = {
+                "image": image_name,
+                "command": self._command,
+                "entrypoint": self._entrypoint,
+                "environment": self._env,
+                "ports": ports,
+                "volumes": self._volumes,
+                "working_dir": self._working_dir,
+                "name": self._name,
+                "labels": labels,
+                "privileged": self._privileged,
+                "detach": True,
+            }
+            
+            # Add network configuration
+            if network:
+                create_kwargs["network"] = network
+                if networking_config:
+                    create_kwargs["networking_config"] = networking_config
+            elif self._network_mode:
+                create_kwargs["network_mode"] = self._network_mode
+            
+            # Apply container modifiers
+            for modifier in self._create_container_modifiers:
+                if callable(modifier):
+                    create_kwargs = modifier(create_kwargs) or create_kwargs
+            
+            self._container = self._docker_client.containers.create(**create_kwargs)
             
             self._container_id = self._container.id
             logger.info(f"Container created: {self._container_id}")
+            
+            # Copy files to container before starting
+            for source, target in self._copy_to_container.items():
+                logger.debug(f"Copying {source} to {target} in container")
+                self.copy_file_to_container(source, target)
             
             # Start container
             self._container.start()
@@ -520,3 +641,66 @@ class GenericContainer(Container["GenericContainer"], ContainerState, WaitStrate
         
         self._container.reload()
         return self._container.attrs
+    
+    # File operations
+    
+    def copy_file_to_container(self, source: str, target: str) -> None:
+        """
+        Copy a file or directory from the host to the container.
+        
+        Args:
+            source: Source path on host
+            target: Target path in container
+        """
+        import tarfile
+        import io
+        import os
+        
+        if self._container is None:
+            raise RuntimeError("Container not started")
+        
+        # Create a tar archive in memory
+        tar_stream = io.BytesIO()
+        with tarfile.open(fileobj=tar_stream, mode='w') as tar:
+            # Add file or directory to tar
+            arcname = os.path.basename(source)
+            tar.add(source, arcname=arcname)
+        
+        tar_stream.seek(0)
+        
+        # Extract to container
+        target_dir = os.path.dirname(target)
+        if not target_dir:
+            target_dir = "/"
+        
+        self._container.put_archive(target_dir, tar_stream.getvalue())
+        logger.debug(f"Copied {source} to {target} in container {self._container_id}")
+    
+    def copy_file_from_container(self, source: str, target: str) -> None:
+        """
+        Copy a file or directory from the container to the host.
+        
+        Args:
+            source: Source path in container
+            target: Target path on host
+        """
+        import tarfile
+        import io
+        
+        if self._container is None:
+            raise RuntimeError("Container not started")
+        
+        # Get tar stream from container
+        bits, stat = self._container.get_archive(source)
+        
+        # Write tar stream to target
+        tar_stream = io.BytesIO()
+        for chunk in bits:
+            tar_stream.write(chunk)
+        tar_stream.seek(0)
+        
+        # Extract from tar
+        with tarfile.open(fileobj=tar_stream) as tar:
+            tar.extractall(path=target)
+        
+        logger.debug(f"Copied {source} from container {self._container_id} to {target}")
