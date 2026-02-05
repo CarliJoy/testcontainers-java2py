@@ -9,8 +9,9 @@ https://github.com/testcontainers/testcontainers-java/blob/main/modules/elastics
 
 from __future__ import annotations
 
+from typing import Optional
 from testcontainers.core.generic_container import GenericContainer
-from testcontainers.waiting.http import HttpWaitStrategy
+from testcontainers.waiting.log import LogMessageWaitStrategy
 
 
 class ElasticsearchContainer(GenericContainer):
@@ -42,26 +43,28 @@ class ElasticsearchContainer(GenericContainer):
     """
 
     # Default configuration
-    DEFAULT_IMAGE = "elasticsearch:8.11.0"
-    DEFAULT_HTTP_PORT = 9200
-    DEFAULT_TRANSPORT_PORT = 9300
-
-    # Default credentials
-    DEFAULT_USERNAME = "elastic"
-    DEFAULT_PASSWORD = "changeme"
+    DEFAULT_IMAGE = "docker.elastic.co/elasticsearch/elasticsearch:7.9.2"
+    ELASTICSEARCH_DEFAULT_PORT = 9200
+    ELASTICSEARCH_DEFAULT_TCP_PORT = 9300
+    ELASTICSEARCH_DEFAULT_PASSWORD = "changeme"
+    DEFAULT_CERT_PATH = "/usr/share/elasticsearch/config/certs/http_ca.crt"
 
     def __init__(self, image: str = DEFAULT_IMAGE):
         """
         Initialize an Elasticsearch container.
 
         Args:
-            image: Docker image name (default: elasticsearch:8.11.0)
+            image: Docker image name
         """
         super().__init__(image)
 
-        self._http_port = self.DEFAULT_HTTP_PORT
-        self._transport_port = self.DEFAULT_TRANSPORT_PORT
+        self._http_port = self.ELASTICSEARCH_DEFAULT_PORT
+        self._transport_port = self.ELASTICSEARCH_DEFAULT_TCP_PORT
         self._password: str | None = None
+        self._cert_path: str = ""
+        
+        # Check if version 8+
+        self._is_at_least_major_version_8 = self._check_version_8(image)
 
         # Expose Elasticsearch ports
         self.with_exposed_ports(self._http_port, self._transport_port)
@@ -69,21 +72,31 @@ class ElasticsearchContainer(GenericContainer):
         # Default environment variables for single-node cluster
         self.with_env("discovery.type", "single-node")
         
-        # Disable security by default for easier testing
-        # Users should enable it with with_password() for production
-        self.with_env("xpack.security.enabled", "false")
+        # Disable disk threshold checks
+        self.with_env("cluster.routing.allocation.disk.threshold_enabled", "false")
         
-        # Set reasonable memory limits for testing
-        self.with_env("ES_JAVA_OPTS", "-Xms512m -Xmx512m")
+        # Wait strategy matching Java regex
+        regex = r".*(\"message\":\s?\"started[\s?|\"].*|] started\n$)"
+        self.waiting_for(LogMessageWaitStrategy().with_regex(regex))
+        
+        # If version 8+, enable security by default
+        if self._is_at_least_major_version_8:
+            self.with_password(self.ELASTICSEARCH_DEFAULT_PASSWORD)
+            self.with_cert_path(self.DEFAULT_CERT_PATH)
 
-        # Wait for Elasticsearch to be ready
-        # Check the cluster health endpoint
-        self.waiting_for(
-            HttpWaitStrategy()
-            .for_path("/_cluster/health")
-            .for_port(self._http_port)
-            .for_status_code(200)
-        )
+    def _check_version_8(self, image: str) -> bool:
+        """Check if the image version is 8.0.0 or higher."""
+        try:
+            # Extract version from image name
+            if ':' in image:
+                version_str = image.split(':')[-1]
+                # Parse major version
+                if version_str and version_str[0].isdigit():
+                    major_version = int(version_str.split('.')[0])
+                    return major_version >= 8
+        except (ValueError, IndexError):
+            pass
+        return False
 
     def with_password(self, password: str) -> ElasticsearchContainer:
         """
@@ -101,31 +114,70 @@ class ElasticsearchContainer(GenericContainer):
             Setting a password enables xpack.security.enabled=true
         """
         self._password = password
+        self.with_env("ELASTIC_PASSWORD", password)
+        
+        # Enable security for versions < 8 (version 8+ has it enabled by default)
+        if not self._is_at_least_major_version_8:
+            self.with_env("xpack.security.enabled", "true")
+        
         return self
+
+    def with_cert_path(self, cert_path: str) -> ElasticsearchContainer:
+        """
+        Configure a CA cert path.
+
+        Args:
+            cert_path: Path to the CA certificate within the Docker container
+
+        Returns:
+            This container instance
+        """
+        self._cert_path = cert_path
+        return self
+
+    def ca_cert_as_bytes(self) -> Optional[bytes]:
+        """
+        Extract the CA certificate from the container.
+
+        Returns:
+            Bytes of the CA certificate or None if not found
+        """
+        if not self._cert_path:
+            return None
+        
+        if not self._container:
+            return None
+        
+        try:
+            # Copy file from container
+            import tarfile
+            import io
+            
+            bits, _ = self._docker_client.api.get_archive(
+                self._container.id, self._cert_path
+            )
+            
+            # Extract file from tar
+            tar_stream = io.BytesIO(b''.join(bits))
+            with tarfile.open(fileobj=tar_stream) as tar:
+                members = tar.getmembers()
+                if members:
+                    extracted = tar.extractfile(members[0])
+                    if extracted:
+                        return extracted.read()
+        except Exception:
+            # Certificate not found or error occurred
+            pass
+        
+        return None
 
     def start(self) -> ElasticsearchContainer:  # type: ignore[override]
         """
         Start the Elasticsearch container with configured options.
 
-        If a password was set, security features are enabled.
-
         Returns:
             This container instance
         """
-        # Enable security if password is set
-        if self._password:
-            self.with_env("xpack.security.enabled", "true")
-            self.with_env("ELASTIC_PASSWORD", self._password)
-            
-            # Update wait strategy to use authentication
-            self.waiting_for(
-                HttpWaitStrategy()
-                .for_path("/_cluster/health")
-                .for_port(self._http_port)
-                .for_status_code(200)
-                .with_basic_credentials(self.DEFAULT_USERNAME, self._password)
-            )
-
         super().start()
         return self
 
@@ -153,6 +205,9 @@ class ElasticsearchContainer(GenericContainer):
         Returns:
             HTTP host address in format: host:port
         """
+        if not self._container:
+            raise RuntimeError("Container not started")
+        
         host = self.get_host()
         port = self.get_mapped_port(self._http_port)
         return f"{host}:{port}"
@@ -174,23 +229,8 @@ class ElasticsearchContainer(GenericContainer):
 
         Returns:
             Host port number mapped to the transport port
+        
+        Note:
+            Deprecated in Elasticsearch 8.0+
         """
         return self.get_mapped_port(self._transport_port)
-
-    def get_username(self) -> str:
-        """
-        Get the Elasticsearch username.
-
-        Returns:
-            Username (always 'elastic')
-        """
-        return self.DEFAULT_USERNAME
-
-    def get_password(self) -> str | None:
-        """
-        Get the Elasticsearch password if authentication is enabled.
-
-        Returns:
-            Password or None if security is disabled
-        """
-        return self._password

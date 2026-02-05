@@ -43,37 +43,39 @@ class RabbitMQContainer(GenericContainer):
     """
 
     # Default configuration
-    DEFAULT_IMAGE = "rabbitmq:3-management"
+    DEFAULT_IMAGE = "rabbitmq:3.7.25-management-alpine"
     DEFAULT_AMQP_PORT = 5672
-    DEFAULT_MANAGEMENT_PORT = 15672
+    DEFAULT_AMQPS_PORT = 5671
+    DEFAULT_HTTP_PORT = 15672
+    DEFAULT_HTTPS_PORT = 15671
 
     # Default credentials
     DEFAULT_USERNAME = "guest"
     DEFAULT_PASSWORD = "guest"
-    DEFAULT_VHOST = "/"
 
     def __init__(self, image: str = DEFAULT_IMAGE):
         """
         Initialize a RabbitMQ container.
 
         Args:
-            image: Docker image name (default: rabbitmq:3-management)
+            image: Docker image name (default: rabbitmq:3.7.25-management-alpine)
         """
         super().__init__(image)
 
         self._amqp_port = self.DEFAULT_AMQP_PORT
-        self._management_port = self.DEFAULT_MANAGEMENT_PORT
-        self._username = self.DEFAULT_USERNAME
-        self._password = self.DEFAULT_PASSWORD
-        self._vhost = self.DEFAULT_VHOST
+        self._amqps_port = self.DEFAULT_AMQPS_PORT
+        self._http_port = self.DEFAULT_HTTP_PORT
+        self._https_port = self.DEFAULT_HTTPS_PORT
+        self._admin_username = self.DEFAULT_USERNAME
+        self._admin_password = self.DEFAULT_PASSWORD
 
-        # Expose RabbitMQ ports
-        self.with_exposed_ports(self._amqp_port, self._management_port)
-
-        # Set default environment variables
-        self.with_env("RABBITMQ_DEFAULT_USER", self._username)
-        self.with_env("RABBITMQ_DEFAULT_PASS", self._password)
-        self.with_env("RABBITMQ_DEFAULT_VHOST", self._vhost)
+        # Expose RabbitMQ ports (all 4 ports like Java)
+        self.with_exposed_ports(
+            self._amqp_port,
+            self._amqps_port,
+            self._http_port,
+            self._https_port
+        )
 
         # Wait for RabbitMQ to be ready
         # RabbitMQ logs "Server startup complete" when ready
@@ -82,42 +84,41 @@ class RabbitMQContainer(GenericContainer):
             .with_regex(r".*Server startup complete.*")
         )
 
-    def with_vhost(self, vhost: str) -> RabbitMQContainer:
+    def start(self) -> RabbitMQContainer:  # type: ignore[override]
         """
-        Set the RabbitMQ virtual host (fluent API).
-
-        Virtual hosts provide logical grouping and separation of resources.
-
-        Args:
-            vhost: Virtual host name (e.g., "/", "myvhost")
+        Start the RabbitMQ container with configured options.
 
         Returns:
             This container instance
         """
-        self._vhost = vhost
-        self.with_env("RABBITMQ_DEFAULT_VHOST", vhost)
+        # Configure environment variables
+        if self._admin_username is not None:
+            self.with_env("RABBITMQ_DEFAULT_USER", self._admin_username)
+        if self._admin_password is not None:
+            self.with_env("RABBITMQ_DEFAULT_PASS", self._admin_password)
+        
+        super().start()
         return self
 
-    def with_username(self, username: str) -> RabbitMQContainer:
+    def with_admin_user(self, username: str) -> RabbitMQContainer:
         """
-        Set the RabbitMQ username (fluent API).
+        Set the admin username (fluent API).
 
         Args:
-            username: RabbitMQ username
+            username: RabbitMQ admin username
 
         Returns:
             This container instance
         """
-        self._username = username
-        self.with_env("RABBITMQ_DEFAULT_USER", username)
+        self._admin_username = username
         return self
 
-    def with_password(self, password: str) -> RabbitMQContainer:
+    def with_admin_password(self, password: str) -> RabbitMQContainer:
         """
-        Set the RabbitMQ password (fluent API).
+        Set the admin password (fluent API).
 
         Args:
-            password: RabbitMQ password
+            password: RabbitMQ admin password
 
         Returns:
             This container instance
@@ -125,35 +126,78 @@ class RabbitMQContainer(GenericContainer):
         Security note:
             Use strong passwords for production deployments
         """
-        self._password = password
-        self.with_env("RABBITMQ_DEFAULT_PASS", password)
+        self._admin_password = password
         return self
 
-    def with_credentials(
-        self, username: str, password: str
+    def with_ssl(
+        self,
+        key_file: str,
+        cert_file: str,
+        ca_file: str,
+        verify: str = "verify_none",
+        fail_if_no_cert: bool = False,
+        verification_depth: int | None = None,
     ) -> RabbitMQContainer:
         """
-        Set both username and password (fluent API).
+        Configure SSL/TLS for RabbitMQ.
 
         Args:
-            username: RabbitMQ username
-            password: RabbitMQ password
+            key_file: Path to the private key file
+            cert_file: Path to the certificate file
+            ca_file: Path to the CA certificate file
+            verify: SSL verification mode ("verify_none" or "verify_peer")
+            fail_if_no_cert: Whether to fail if no peer certificate is provided
+            verification_depth: Maximum certificate chain depth
 
         Returns:
             This container instance
         """
-        self.with_username(username)
-        self.with_password(password)
+        self.with_env("RABBITMQ_SSL_CACERTFILE", "/etc/rabbitmq/ca_cert.pem")
+        self.with_env("RABBITMQ_SSL_CERTFILE", "/etc/rabbitmq/rabbitmq_cert.pem")
+        self.with_env("RABBITMQ_SSL_KEYFILE", "/etc/rabbitmq/rabbitmq_key.pem")
+        self.with_env("RABBITMQ_SSL_VERIFY", verify)
+        self.with_env("RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT", str(fail_if_no_cert).lower())
+        
+        if verification_depth is not None:
+            self.with_env("RABBITMQ_SSL_DEPTH", str(verification_depth))
+        
+        # Copy certificate files to container
+        self.with_copy_file_to_container(cert_file, "/etc/rabbitmq/rabbitmq_cert.pem")
+        self.with_copy_file_to_container(ca_file, "/etc/rabbitmq/ca_cert.pem")
+        self.with_copy_file_to_container(key_file, "/etc/rabbitmq/rabbitmq_key.pem")
+        
         return self
+
+    def get_admin_username(self) -> str:
+        """Get the admin username."""
+        return self._admin_username
+
+    def get_admin_password(self) -> str:
+        """Get the admin password."""
+        return self._admin_password
+
+    def get_amqp_port(self) -> int:
+        """Get the AMQP port (5672)."""
+        return self.get_mapped_port(self._amqp_port)
+
+    def get_amqps_port(self) -> int:
+        """Get the AMQPS port (5671)."""
+        return self.get_mapped_port(self._amqps_port)
+
+    def get_http_port(self) -> int:
+        """Get the HTTP management port (15672)."""
+        return self.get_mapped_port(self._http_port)
+
+    def get_https_port(self) -> int:
+        """Get the HTTPS management port (15671)."""
+        return self.get_mapped_port(self._https_port)
 
     def get_amqp_url(self) -> str:
         """
         Get the AMQP connection URL.
 
-        This URL is used by AMQP clients to connect to RabbitMQ.
-
         Returns:
-            AMQP URL in format: amqp://user:pass@host:port/vhost
+            AMQP URL in format: amqp://host:port
 
         Raises:
             RuntimeError: If container is not started
@@ -162,22 +206,29 @@ class RabbitMQContainer(GenericContainer):
             raise RuntimeError("Container not started")
 
         host = self.get_host()
-        port = self.get_mapped_port(self._amqp_port)
-        
-        # URL encode vhost (replace / with %2F)
-        vhost = self._vhost
-        if vhost == "/":
-            vhost = ""
-        elif vhost.startswith("/"):
-            vhost = vhost[1:]
+        port = self.get_amqp_port()
+        return f"amqp://{host}:{port}"
 
-        return f"amqp://{self._username}:{self._password}@{host}:{port}/{vhost}"
+    def get_amqps_url(self) -> str:
+        """
+        Get the AMQPS connection URL.
+
+        Returns:
+            AMQPS URL in format: amqps://host:port
+
+        Raises:
+            RuntimeError: If container is not started
+        """
+        if not self._container:
+            raise RuntimeError("Container not started")
+
+        host = self.get_host()
+        port = self.get_amqps_port()
+        return f"amqps://{host}:{port}"
 
     def get_http_url(self) -> str:
         """
         Get the RabbitMQ Management HTTP API URL.
-
-        This URL provides access to the management REST API and web UI.
 
         Returns:
             HTTP URL in format: http://host:port
@@ -189,72 +240,22 @@ class RabbitMQContainer(GenericContainer):
             raise RuntimeError("Container not started")
 
         host = self.get_host()
-        port = self.get_mapped_port(self._management_port)
+        port = self.get_http_port()
         return f"http://{host}:{port}"
 
-    def get_admin_url(self) -> str:
+    def get_https_url(self) -> str:
         """
-        Get the RabbitMQ Management UI URL.
-
-        Alias for get_http_url() for compatibility.
+        Get the RabbitMQ Management HTTPS API URL.
 
         Returns:
-            HTTP URL for the management UI
-        """
-        return self.get_http_url()
+            HTTPS URL in format: https://host:port
 
-    def get_amqp_port(self) -> int:
+        Raises:
+            RuntimeError: If container is not started
         """
-        Get the exposed AMQP port number on the host.
+        if not self._container:
+            raise RuntimeError("Container not started")
 
-        Returns:
-            Host port number mapped to the AMQP port
-        """
-        return self.get_mapped_port(self._amqp_port)
-
-    def get_management_port(self) -> int:
-        """
-        Get the exposed management port number on the host.
-
-        Returns:
-            Host port number mapped to the management port
-        """
-        return self.get_mapped_port(self._management_port)
-
-    def get_port(self) -> int:
-        """
-        Get the exposed AMQP port number on the host.
-
-        Alias for get_amqp_port().
-
-        Returns:
-            Host port number mapped to the AMQP port
-        """
-        return self.get_amqp_port()
-
-    def get_username(self) -> str:
-        """
-        Get the RabbitMQ username.
-
-        Returns:
-            RabbitMQ username
-        """
-        return self._username
-
-    def get_password(self) -> str:
-        """
-        Get the RabbitMQ password.
-
-        Returns:
-            RabbitMQ password
-        """
-        return self._password
-
-    def get_vhost(self) -> str:
-        """
-        Get the RabbitMQ virtual host.
-
-        Returns:
-            Virtual host name
-        """
-        return self._vhost
+        host = self.get_host()
+        port = self.get_https_port()
+        return f"https://{host}:{port}"

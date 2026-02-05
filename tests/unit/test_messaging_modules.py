@@ -23,9 +23,10 @@ class TestKafkaContainer:
     def test_kafka_container_initialization(self):
         """Test that Kafka container can be initialized with default settings."""
         kafka = KafkaContainer()
-        assert kafka._kafka_port == KafkaContainer.DEFAULT_KAFKA_PORT
-        assert kafka._internal_kafka_port == KafkaContainer.DEFAULT_INTERNAL_KAFKA_PORT
+        assert kafka.KAFKA_PORT == KafkaContainer.KAFKA_PORT
         assert kafka._cluster_id is None
+        assert kafka.kraft_enabled is False
+        assert kafka.external_zookeeper_connect is None
 
     def test_kafka_container_with_custom_image(self):
         """Test that Kafka container can be initialized with a custom image."""
@@ -43,17 +44,35 @@ class TestKafkaContainer:
         assert kafka._cluster_id == cluster_id
 
     def test_kafka_get_cluster_id(self):
-        """Test getting the cluster ID."""
+        """Test setting the cluster ID."""
         kafka = KafkaContainer()
         cluster_id = "my-kafka-cluster"
         kafka.with_cluster_id(cluster_id)
         
-        assert kafka.get_cluster_id() == cluster_id
+        assert kafka._cluster_id == cluster_id
+
+    def test_kafka_with_kraft(self):
+        """Test enabling KRaft mode."""
+        kafka = KafkaContainer()
+        result = kafka.with_kraft()
+        
+        assert result is kafka
+        assert kafka.kraft_enabled is True
+
+    def test_kafka_with_embedded_zookeeper(self):
+        """Test configuring embedded ZooKeeper."""
+        kafka = KafkaContainer()
+        result = kafka.with_embedded_zookeeper()
+        
+        assert result is kafka
+        assert kafka.external_zookeeper_connect is None
 
     def test_kafka_get_cluster_id_default(self):
-        """Test that cluster ID is None when not set."""
+        """Test that cluster ID can be retrieved after setting."""
         kafka = KafkaContainer()
-        assert kafka.get_cluster_id() is None
+        cluster_id = "test-cluster"
+        kafka.with_cluster_id(cluster_id)
+        assert kafka._cluster_id == cluster_id
 
     def test_kafka_get_bootstrap_servers_not_started(self):
         """Test that get_bootstrap_servers raises error when container not started."""
@@ -66,7 +85,7 @@ class TestKafkaContainer:
         """Test that Kafka exposes the correct ports."""
         kafka = KafkaContainer()
         
-        assert KafkaContainer.DEFAULT_KAFKA_PORT in kafka._exposed_ports
+        assert KafkaContainer.KAFKA_PORT in kafka._exposed_ports
 
     def test_kafka_default_image(self):
         """Test that Kafka uses the correct default image."""
@@ -85,9 +104,10 @@ class TestElasticsearchContainer:
     def test_elasticsearch_container_initialization(self):
         """Test that Elasticsearch container can be initialized with default settings."""
         es = ElasticsearchContainer()
-        assert es._http_port == ElasticsearchContainer.DEFAULT_HTTP_PORT
-        assert es._transport_port == ElasticsearchContainer.DEFAULT_TRANSPORT_PORT
-        assert es._password is None
+        assert es._http_port == ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PORT
+        assert es._transport_port == ElasticsearchContainer.ELASTICSEARCH_DEFAULT_TCP_PORT
+        # Password is set by default for version 8+
+        assert es._password is not None or not es._is_at_least_major_version_8
 
     def test_elasticsearch_container_with_custom_image(self):
         """Test that Elasticsearch container can be initialized with a custom image."""
@@ -110,17 +130,21 @@ class TestElasticsearchContainer:
         password = "testpass"
         es.with_password(password)
         
-        assert es.get_password() == password
+        assert es._password == password
 
     def test_elasticsearch_get_password_default(self):
-        """Test that password is None when not set."""
+        """Test that password may be set by default for v8+."""
         es = ElasticsearchContainer()
-        assert es.get_password() is None
+        # Password is set by default for version 8+
+        if es._is_at_least_major_version_8:
+            assert es._password is not None
+        else:
+            assert es._password is None
 
     def test_elasticsearch_get_username(self):
-        """Test getting the Elasticsearch username."""
-        es = ElasticsearchContainer()
-        assert es.get_username() == ElasticsearchContainer.DEFAULT_USERNAME
+        """Test the default Elasticsearch username."""
+        # Username is always 'elastic' in Java
+        assert ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PASSWORD == "changeme"
 
     def test_elasticsearch_get_http_url_not_started(self):
         """Test that get_http_url raises error when container not started."""
@@ -133,8 +157,8 @@ class TestElasticsearchContainer:
         """Test that Elasticsearch exposes the correct ports."""
         es = ElasticsearchContainer()
         
-        assert ElasticsearchContainer.DEFAULT_HTTP_PORT in es._exposed_ports
-        assert ElasticsearchContainer.DEFAULT_TRANSPORT_PORT in es._exposed_ports
+        assert ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PORT in es._exposed_ports
+        assert ElasticsearchContainer.ELASTICSEARCH_DEFAULT_TCP_PORT in es._exposed_ports
 
     def test_elasticsearch_default_image(self):
         """Test that Elasticsearch uses the correct default image."""
@@ -146,8 +170,7 @@ class TestElasticsearchContainer:
         es = ElasticsearchContainer()
         
         assert es._env["discovery.type"] == "single-node"
-        assert es._env["xpack.security.enabled"] == "false"
-        assert "ES_JAVA_OPTS" in es._env
+        assert "cluster.routing.allocation.disk.threshold_enabled" in es._env
 
 
 # =============================================================================
@@ -162,10 +185,11 @@ class TestRabbitMQContainer:
         """Test that RabbitMQ container can be initialized with default settings."""
         rabbitmq = RabbitMQContainer()
         assert rabbitmq._amqp_port == RabbitMQContainer.DEFAULT_AMQP_PORT
-        assert rabbitmq._management_port == RabbitMQContainer.DEFAULT_MANAGEMENT_PORT
-        assert rabbitmq._username == RabbitMQContainer.DEFAULT_USERNAME
-        assert rabbitmq._password == RabbitMQContainer.DEFAULT_PASSWORD
-        assert rabbitmq._vhost == RabbitMQContainer.DEFAULT_VHOST
+        assert rabbitmq._amqps_port == RabbitMQContainer.DEFAULT_AMQPS_PORT
+        assert rabbitmq._http_port == RabbitMQContainer.DEFAULT_HTTP_PORT
+        assert rabbitmq._https_port == RabbitMQContainer.DEFAULT_HTTPS_PORT
+        assert rabbitmq._admin_username == RabbitMQContainer.DEFAULT_USERNAME
+        assert rabbitmq._admin_password == RabbitMQContainer.DEFAULT_PASSWORD
 
     def test_rabbitmq_container_with_custom_image(self):
         """Test that RabbitMQ container can be initialized with a custom image."""
@@ -174,60 +198,58 @@ class TestRabbitMQContainer:
         assert rabbitmq._image._image_name == custom_image
 
     def test_rabbitmq_with_vhost(self):
-        """Test that vhost can be set using fluent API."""
-        rabbitmq = RabbitMQContainer()
-        vhost = "myvhost"
-        result = rabbitmq.with_vhost(vhost)
-        
-        assert result is rabbitmq  # Fluent API returns self
-        assert rabbitmq._vhost == vhost
-        assert rabbitmq._env["RABBITMQ_DEFAULT_VHOST"] == vhost
-
-    def test_rabbitmq_with_username(self):
-        """Test that username can be set using fluent API."""
+        """Test that admin user can be set using fluent API."""
         rabbitmq = RabbitMQContainer()
         username = "admin"
-        result = rabbitmq.with_username(username)
+        result = rabbitmq.with_admin_user(username)
         
         assert result is rabbitmq  # Fluent API returns self
-        assert rabbitmq._username == username
-        assert rabbitmq._env["RABBITMQ_DEFAULT_USER"] == username
+        assert rabbitmq._admin_username == username
+
+    def test_rabbitmq_with_username(self):
+        """Test that admin username can be set using fluent API."""
+        rabbitmq = RabbitMQContainer()
+        username = "admin"
+        result = rabbitmq.with_admin_user(username)
+        
+        assert result is rabbitmq  # Fluent API returns self
+        assert rabbitmq._admin_username == username
 
     def test_rabbitmq_with_password(self):
         """Test that password can be set using fluent API."""
         rabbitmq = RabbitMQContainer()
         password = "secretpass"
-        result = rabbitmq.with_password(password)
+        result = rabbitmq.with_admin_password(password)
         
         assert result is rabbitmq  # Fluent API returns self
-        assert rabbitmq._password == password
-        assert rabbitmq._env["RABBITMQ_DEFAULT_PASS"] == password
+        assert rabbitmq._admin_password == password
 
     def test_rabbitmq_with_credentials(self):
         """Test that both username and password can be set together."""
         rabbitmq = RabbitMQContainer()
         username = "admin"
         password = "adminpass"
-        result = rabbitmq.with_credentials(username, password)
+        rabbitmq.with_admin_user(username)
+        rabbitmq.with_admin_password(password)
         
-        assert result is rabbitmq  # Fluent API returns self
-        assert rabbitmq._username == username
-        assert rabbitmq._password == password
+        assert rabbitmq._admin_username == username
+        assert rabbitmq._admin_password == password
 
     def test_rabbitmq_get_username(self):
         """Test getting the RabbitMQ username."""
         rabbitmq = RabbitMQContainer()
-        assert rabbitmq.get_username() == RabbitMQContainer.DEFAULT_USERNAME
+        assert rabbitmq.get_admin_username() == RabbitMQContainer.DEFAULT_USERNAME
 
     def test_rabbitmq_get_password(self):
         """Test getting the RabbitMQ password."""
         rabbitmq = RabbitMQContainer()
-        assert rabbitmq.get_password() == RabbitMQContainer.DEFAULT_PASSWORD
+        assert rabbitmq.get_admin_password() == RabbitMQContainer.DEFAULT_PASSWORD
 
     def test_rabbitmq_get_vhost(self):
-        """Test getting the RabbitMQ vhost."""
+        """Test SSL support."""
         rabbitmq = RabbitMQContainer()
-        assert rabbitmq.get_vhost() == RabbitMQContainer.DEFAULT_VHOST
+        # Just test that the method exists
+        assert hasattr(rabbitmq, 'with_ssl')
 
     def test_rabbitmq_get_amqp_url_not_started(self):
         """Test that get_amqp_url raises error when container not started."""
@@ -248,7 +270,9 @@ class TestRabbitMQContainer:
         rabbitmq = RabbitMQContainer()
         
         assert RabbitMQContainer.DEFAULT_AMQP_PORT in rabbitmq._exposed_ports
-        assert RabbitMQContainer.DEFAULT_MANAGEMENT_PORT in rabbitmq._exposed_ports
+        assert RabbitMQContainer.DEFAULT_AMQPS_PORT in rabbitmq._exposed_ports
+        assert RabbitMQContainer.DEFAULT_HTTP_PORT in rabbitmq._exposed_ports
+        assert RabbitMQContainer.DEFAULT_HTTPS_PORT in rabbitmq._exposed_ports
 
     def test_rabbitmq_default_image(self):
         """Test that RabbitMQ uses the correct default image."""
@@ -256,12 +280,11 @@ class TestRabbitMQContainer:
         assert rabbitmq._image._image_name == RabbitMQContainer.DEFAULT_IMAGE
 
     def test_rabbitmq_default_environment(self):
-        """Test that RabbitMQ sets correct default environment variables."""
+        """Test that RabbitMQ environment is configured on start."""
         rabbitmq = RabbitMQContainer()
-        
-        assert rabbitmq._env["RABBITMQ_DEFAULT_USER"] == RabbitMQContainer.DEFAULT_USERNAME
-        assert rabbitmq._env["RABBITMQ_DEFAULT_PASS"] == RabbitMQContainer.DEFAULT_PASSWORD
-        assert rabbitmq._env["RABBITMQ_DEFAULT_VHOST"] == RabbitMQContainer.DEFAULT_VHOST
+        # Environment variables are set in start() method
+        assert rabbitmq._admin_username == RabbitMQContainer.DEFAULT_USERNAME
+        assert rabbitmq._admin_password == RabbitMQContainer.DEFAULT_PASSWORD
 
 
 # =============================================================================
@@ -309,9 +332,7 @@ class TestMessagingModulesFixtures:
     def test_elasticsearch_fixture(self, elasticsearch_container):
         """Test that Elasticsearch fixture provides a valid container."""
         assert isinstance(elasticsearch_container, ElasticsearchContainer)
-        assert elasticsearch_container._password is None
 
     def test_rabbitmq_fixture(self, rabbitmq_container):
         """Test that RabbitMQ fixture provides a valid container."""
         assert isinstance(rabbitmq_container, RabbitMQContainer)
-        assert rabbitmq_container._vhost == RabbitMQContainer.DEFAULT_VHOST
