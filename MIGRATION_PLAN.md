@@ -29,7 +29,7 @@
    - Prioritize features based on impact and complexity
 
 ### 2. **Development Environment Setup**
-   - Install `uv` package manager (https://github.com/astral-sh/uv)
+   - Install `uv` package manager (https://docs.astral.sh/uv/)
    - Set up local development environment with uv
    - Configure code quality tools:
      - `ruff` for linting and formatting (replaces black + flake8)
@@ -110,7 +110,7 @@
    - Unit tests for individual components
    - Integration tests for Docker interactions
    - Example-based tests demonstrating usage patterns
-   - Test on multiple Python versions (3.8, 3.9, 3.10, 3.11, 3.12+)
+   - Test on multiple Python versions (3.9, 3.10, 3.11, 3.12, 3.13+)
    
    **Test Coverage:**
    - Aim for >90% code coverage for core library
@@ -289,7 +289,8 @@ git clone https://github.com/testcontainers/testcontainers-python.git
 # Create virtual environment and install dependencies
 cd testcontainers-python
 uv venv
-source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+source .venv/bin/activate  # Linux/macOS
+# On Windows: .venv\Scripts\activate.bat (cmd) or .venv/Scripts/activate (PowerShell)
 uv pip install -e ".[dev]"
 ```
 
