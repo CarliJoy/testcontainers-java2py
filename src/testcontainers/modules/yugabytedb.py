@@ -14,7 +14,6 @@ import time
 from datetime import timedelta
 
 from testcontainers.core.generic_container import GenericContainer
-from testcontainers.core.waiting_utils import wait_for_logs
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
 
 

@@ -14,7 +14,7 @@ from typing import Set
 
 from testcontainers.core.generic_container import GenericContainer
 from testcontainers.waiting.http import HttpWaitStrategy
-from testcontainers.waiting.strategy import WaitingStrategy
+from testcontainers.waiting.wait_strategy import WaitStrategy
 
 
 class CouchbaseService(Enum):
