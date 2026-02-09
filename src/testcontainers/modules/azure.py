@@ -10,7 +10,6 @@ https://github.com/testcontainers/testcontainers-java/blob/main/modules/azure/sr
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from testcontainers.core.generic_container import GenericContainer
 
@@ -49,7 +48,9 @@ class AzuriteContainer(GenericContainer):
 
     # Well-known account credentials
     WELL_KNOWN_ACCOUNT_NAME = "devstoreaccount1"
-    WELL_KNOWN_ACCOUNT_KEY = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
+    WELL_KNOWN_ACCOUNT_KEY = (
+        "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
+    )
 
     CONNECTION_STRING_FORMAT = (
         "DefaultEndpointsProtocol={protocol};AccountName={account_name};AccountKey={account_key};"
@@ -71,10 +72,10 @@ class AzuriteContainer(GenericContainer):
         self._queue_port = self.DEFAULT_QUEUE_PORT
         self._table_port = self.DEFAULT_TABLE_PORT
 
-        self._cert_file: Optional[str] = None
-        self._cert_extension: Optional[str] = None
-        self._key_file: Optional[str] = None
-        self._pwd: Optional[str] = None
+        self._cert_file: str | None = None
+        self._cert_extension: str | None = None
+        self._key_file: str | None = None
+        self._pwd: str | None = None
 
         # Expose Azurite ports
         self.with_exposed_ports(self._blob_port, self._queue_port, self._table_port)
@@ -138,8 +139,8 @@ class AzuriteContainer(GenericContainer):
 
     def get_connection_string(
         self,
-        account_name: Optional[str] = None,
-        account_key: Optional[str] = None
+        account_name: str | None = None,
+        account_key: str | None = None
     ) -> str:
         """
         Get the connection string for Azurite.

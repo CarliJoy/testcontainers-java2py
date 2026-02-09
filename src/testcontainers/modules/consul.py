@@ -10,7 +10,6 @@ https://github.com/testcontainers/testcontainers-java/blob/main/modules/consul/s
 from __future__ import annotations
 
 import logging
-from typing import List
 
 from testcontainers.core.generic_container import GenericContainer
 from testcontainers.waiting.http import HttpWaitStrategy
@@ -58,7 +57,7 @@ class ConsulContainer(GenericContainer):
 
         self._http_port = self.CONSUL_HTTP_PORT
         self._grpc_port = self.CONSUL_GRPC_PORT
-        self._init_commands: List[str] = []
+        self._init_commands: list[str] = []
 
         # Expose Consul ports
         self.with_exposed_ports(self._http_port, self._grpc_port)
