@@ -178,8 +178,8 @@ ruff check src/ tests/
 # Run ruff auto-fix
 ruff check --fix src/ tests/
 
-# Format with black
-black src/ tests/
+# Format with ruff
+ruff format src/ tests/
 
 # Type checking with mypy
 mypy src/
@@ -295,8 +295,7 @@ container.waiting_for(
 - `pytest>=7.0.0` - Testing framework
 - `pytest-cov>=4.0.0` - Coverage reporting
 - `mypy>=1.0.0` - Type checking
-- `ruff>=0.1.0` - Linting
-- `black>=23.0.0` - Code formatting
+- `ruff>=0.1.0` - Linting and formatting
 
 ## Important Notes
 
@@ -379,7 +378,7 @@ uv sync --all-groups
 3. ✅ **Always** run tests with pytest
 4. ✅ **Always** run mypy to check types
 5. ✅ **Always** run ruff to check style
-6. ✅ **Always** format with black
+6. ✅ **Always** format with ruff
 7. ✅ **Always** add docstrings to public APIs
 8. ✅ **Always** include Java source references for modules
 9. ✅ **Always** maintain feature parity with Java implementation
