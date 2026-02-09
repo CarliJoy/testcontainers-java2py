@@ -82,11 +82,16 @@ class PostgreSQLContainer(JdbcDatabaseContainer):
         self.with_env("POSTGRES_PASSWORD", self._password)
         self.with_env("POSTGRES_DB", self._dbname)
 
+        # Disable Postgres driver use of java.util.logging to reduce noise at startup time
+        # This matches the Java implementation's configure() method
+        self.with_url_param("loggerLevel", "OFF")
+
         # Wait for PostgreSQL to be ready with timeout matching Java (60 seconds)
         # PostgreSQL logs "database system is ready to accept connections" when ready
+        # Java regex: ".*database system is ready to accept connections.*\\s"
         self.waiting_for(
             LogMessageWaitStrategy()
-            .with_regex(r".*database system is ready to accept connections.*")
+            .with_regex(r".*database system is ready to accept connections.*\s")
             .with_times(2)  # PostgreSQL logs this twice during startup
             .with_startup_timeout(timedelta(seconds=60))
         )
@@ -105,11 +110,12 @@ class PostgreSQLContainer(JdbcDatabaseContainer):
         Get the JDBC connection URL for PostgreSQL.
 
         Returns:
-            JDBC connection URL in format: jdbc:postgresql://host:port/database
+            JDBC connection URL in format: jdbc:postgresql://host:port/database[?params]
         """
         host = self.get_host()
         port = self.get_port()
-        return f"jdbc:postgresql://{host}:{port}/{self._dbname}"
+        additional_params = self._construct_url_parameters("?", "&")
+        return f"jdbc:postgresql://{host}:{port}/{self._dbname}{additional_params}"
 
     def get_connection_string(self) -> str:
         """

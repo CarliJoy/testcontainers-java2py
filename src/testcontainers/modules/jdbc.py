@@ -11,6 +11,7 @@ https://github.com/testcontainers/testcontainers-java/blob/main/modules/database
 from __future__ import annotations
 
 from abc import abstractmethod
+from typing import Dict
 
 from testcontainers.core.generic_container import GenericContainer
 
@@ -59,6 +60,8 @@ class JdbcDatabaseContainer(GenericContainer):
         self._username = username
         self._password = password
         self._dbname = dbname
+        self._url_parameters: Dict[str, str] = {}
+        self._init_scripts: list[str] = []
 
         # Expose the database port
         self.with_exposed_ports(self._port)
@@ -170,3 +173,84 @@ class JdbcDatabaseContainer(GenericContainer):
             Host port number mapped to the database port
         """
         return self.get_mapped_port(self._port)
+
+    def with_url_param(self, key: str, value: str) -> JdbcDatabaseContainer:
+        """
+        Add a URL parameter to the JDBC connection URL (fluent API).
+
+        This method allows adding custom JDBC URL parameters like SSL settings,
+        timeouts, character encoding, etc.
+
+        Args:
+            key: Parameter name
+            value: Parameter value
+
+        Returns:
+            This container instance
+
+        Example:
+            >>> container.with_url_param("useSSL", "false")
+            >>> container.with_url_param("connectTimeout", "5000")
+        """
+        self._url_parameters[key] = value
+        return self
+
+    def with_init_script(self, script_path: str) -> JdbcDatabaseContainer:
+        """
+        Add an initialization script to run when the database starts (fluent API).
+
+        The script will be executed after the database is ready. This is useful
+        for creating schemas, inserting test data, etc.
+
+        Args:
+            script_path: Path to the SQL script file
+
+        Returns:
+            This container instance
+
+        Example:
+            >>> container.with_init_script("init.sql")
+        """
+        self._init_scripts = [script_path]
+        return self
+
+    def with_init_scripts(self, *script_paths: str) -> JdbcDatabaseContainer:
+        """
+        Add multiple initialization scripts to run when the database starts (fluent API).
+
+        Scripts will be executed in the order provided.
+
+        Args:
+            *script_paths: Paths to SQL script files
+
+        Returns:
+            This container instance
+
+        Example:
+            >>> container.with_init_scripts("schema.sql", "data.sql")
+        """
+        self._init_scripts = list(script_paths)
+        return self
+
+    def _construct_url_parameters(self, start_char: str = "?", delimiter: str = "&") -> str:
+        """
+        Construct URL parameters string from the configured parameters.
+
+        This is a helper method for subclasses to build JDBC URLs with parameters.
+
+        Args:
+            start_char: Character to start the parameters (default: "?")
+            delimiter: Character to separate parameters (default: "&")
+
+        Returns:
+            URL parameters string, or empty string if no parameters
+
+        Example:
+            >>> # With parameters: {"useSSL": "false", "connectTimeout": "5000"}
+            >>> # Returns: "?useSSL=false&connectTimeout=5000"
+        """
+        if not self._url_parameters:
+            return ""
+
+        params = [f"{key}={value}" for key, value in self._url_parameters.items()]
+        return start_char + delimiter.join(params)
