@@ -98,10 +98,10 @@ class YugabyteDBYSQLContainer(JdbcDatabaseContainer):
             This container instance
         """
         super().start()
-        
+
         # Custom wait strategy for YSQL
         self._wait_for_ysql_ready()
-        
+
         return self
 
     def _wait_for_ysql_ready(self) -> None:
@@ -261,10 +261,10 @@ class YugabyteDBYCQLContainer(GenericContainer):
             self.with_env("YCQL_PASSWORD", self._password)
 
         super().start()
-        
+
         # Custom wait strategy for YCQL
         self._wait_for_ycql_ready()
-        
+
         return self
 
     def _wait_for_ycql_ready(self) -> None:
