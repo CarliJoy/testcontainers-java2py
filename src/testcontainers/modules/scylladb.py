@@ -9,8 +9,6 @@ https://github.com/testcontainers/testcontainers-java/blob/main/modules/scylladb
 
 from __future__ import annotations
 
-from typing import Tuple
-
 from testcontainers.core.generic_container import GenericContainer
 from testcontainers.waiting.log import LogMessageWaitStrategy
 
@@ -91,7 +89,7 @@ class ScyllaDBContainer(GenericContainer):
         self._alternator_enabled = True
         return self
 
-    def get_contact_point(self) -> Tuple[str, int]:
+    def get_contact_point(self) -> tuple[str, int]:
         """
         Get the contact point for connecting to ScyllaDB.
 
@@ -100,7 +98,7 @@ class ScyllaDBContainer(GenericContainer):
         """
         return (self.get_host(), self.get_mapped_port(self.CQL_PORT))
 
-    def get_shard_aware_contact_point(self) -> Tuple[str, int]:
+    def get_shard_aware_contact_point(self) -> tuple[str, int]:
         """
         Get the shard-aware contact point for connecting to ScyllaDB.
 

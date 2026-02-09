@@ -92,7 +92,13 @@ class K3sContainer(GenericContainer):
         super().start()
 
         # Retrieve and process kubeconfig
-        raw_kubeconfig = self.exec_in_container(["cat", "/etc/rancher/k3s/k3s.yaml"])[0].decode("utf-8")
+        try:
+            raw_kubeconfig = self.exec_in_container(["cat", "/etc/rancher/k3s/k3s.yaml"])[0].decode("utf-8")
+        except Exception as e:
+            raise RuntimeError(
+                "Failed to retrieve kubeconfig from K3s container. "
+                "The container may not have fully initialized yet."
+            ) from e
 
         # Update server URL in kubeconfig
         server_url = f"https://{self.get_host()}:{self.get_mapped_port(self.KUBE_SECURE_PORT)}"
