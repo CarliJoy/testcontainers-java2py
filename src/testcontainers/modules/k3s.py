@@ -93,7 +93,8 @@ class K3sContainer(GenericContainer):
 
         # Retrieve and process kubeconfig
         try:
-            raw_kubeconfig = self.exec_in_container(["cat", "/etc/rancher/k3s/k3s.yaml"])[0].decode("utf-8")
+            stdout, _ = self.exec_in_container(["cat", "/etc/rancher/k3s/k3s.yaml"])
+            raw_kubeconfig = stdout.decode("utf-8")
         except Exception as e:
             raise RuntimeError(
                 "Failed to retrieve kubeconfig from K3s container. "
