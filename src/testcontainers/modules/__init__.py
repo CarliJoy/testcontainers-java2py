@@ -48,6 +48,10 @@ __all__ = [
     "OracleFreeContainer",
     "RedpandaContainer",
     "TypesenseContainer",
+    "ConsulContainer",
+    "LLdapContainer",
+    "LgtmStackContainer",
+    "AzuriteContainer",
 ]
 
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
@@ -87,3 +91,7 @@ from testcontainers.modules.mssqlserver import MSSQLServerContainer
 from testcontainers.modules.oracle_free import OracleFreeContainer
 from testcontainers.modules.redpanda import RedpandaContainer
 from testcontainers.modules.typesense import TypesenseContainer
+from testcontainers.modules.consul import ConsulContainer
+from testcontainers.modules.ldap import LLdapContainer
+from testcontainers.modules.grafana import LgtmStackContainer
+from testcontainers.modules.azure import AzuriteContainer
