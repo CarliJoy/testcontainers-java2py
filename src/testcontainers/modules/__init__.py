@@ -73,6 +73,9 @@ __all__ = [
     "OllamaContainer",
     "OceanBaseCEContainer",
     "OceanBaseMode",
+    "DatabendContainer",
+    "OracleXEContainer",
+    "PineconeLocalContainer",
 ]
 
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
@@ -137,3 +140,6 @@ from testcontainers.modules.gcloud import (
 )
 from testcontainers.modules.ollama import OllamaContainer
 from testcontainers.modules.oceanbase import OceanBaseCEContainer, OceanBaseMode
+from testcontainers.modules.databend import DatabendContainer
+from testcontainers.modules.oracle_xe import OracleXEContainer
+from testcontainers.modules.pinecone import PineconeLocalContainer
