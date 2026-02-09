@@ -64,6 +64,15 @@ __all__ = [
     "PrestoContainer",
     "TrinoContainer",
     "MilvusContainer",
+    "BigtableEmulatorContainer",
+    "PubSubEmulatorContainer",
+    "DatastoreEmulatorContainer",
+    "FirestoreEmulatorContainer",
+    "SpannerEmulatorContainer",
+    "BigQueryEmulatorContainer",
+    "OllamaContainer",
+    "OceanBaseCEContainer",
+    "OceanBaseMode",
 ]
 
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
@@ -118,3 +127,13 @@ from testcontainers.modules.k6 import K6Container
 from testcontainers.modules.presto import PrestoContainer
 from testcontainers.modules.trino import TrinoContainer
 from testcontainers.modules.milvus import MilvusContainer
+from testcontainers.modules.gcloud import (
+    BigtableEmulatorContainer,
+    PubSubEmulatorContainer,
+    DatastoreEmulatorContainer,
+    FirestoreEmulatorContainer,
+    SpannerEmulatorContainer,
+    BigQueryEmulatorContainer,
+)
+from testcontainers.modules.ollama import OllamaContainer
+from testcontainers.modules.oceanbase import OceanBaseCEContainer, OceanBaseMode
