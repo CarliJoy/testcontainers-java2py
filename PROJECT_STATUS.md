@@ -158,9 +158,25 @@ client = DockerClientFactory.get_client()
 
 ## Specialized Modules
 
-### Databases (10 modules)
+### Currently Implemented: 34 Modules ✅
 
-**PostgreSQL:**
+#### Databases (11 modules)
+
+| Module | Python Class | Status |
+|--------|-------------|---------|
+| PostgreSQL | `PostgreSQLContainer` | ✅ Complete |
+| MySQL | `MySQLContainer` | ✅ Complete |
+| MariaDB | `MariaDBContainer` | ✅ Complete |
+| MongoDB | `MongoDBContainer` | ✅ Complete |
+| Redis | `RedisContainer` | ✅ Complete |
+| Cassandra | `CassandraContainer` | ✅ Complete |
+| Neo4j | `Neo4jContainer` | ✅ Complete |
+| InfluxDB | `InfluxDBContainer` | ✅ Complete |
+| CouchDB | `CouchDBContainer` | ✅ Complete |
+| Oracle Free | `OracleFreeContainer` | ✅ Complete |
+| MS SQL Server | `MSSQLServerContainer` | ✅ Complete |
+
+**Example - PostgreSQL:**
 ```python
 from testcontainers.modules.postgres import PostgreSQLContainer
 
@@ -169,7 +185,7 @@ with PostgreSQLContainer("postgres:13") as postgres:
     conn_url = postgres.get_connection_url()
 ```
 
-**MySQL:**
+**Example - MySQL:**
 ```python
 from testcontainers.modules.mysql import MySQLContainer
 
@@ -179,11 +195,17 @@ with MySQLContainer() as mysql:
     jdbc_url = mysql.get_jdbc_url()
 ```
 
-**Others:** MongoDB, Redis, MariaDB, Cassandra, Neo4j, InfluxDB, CouchDB, Oracle
+#### Messaging (5 modules)
 
-### Messaging (5 modules)
+| Module | Python Class | Status |
+|--------|-------------|---------|
+| Kafka | `KafkaContainer` | ✅ Complete |
+| RabbitMQ | `RabbitMQContainer` | ✅ Complete |
+| ActiveMQ | `ActiveMQContainer` | ✅ Complete |
+| Pulsar | `PulsarContainer` | ✅ Complete |
+| NATS | `NATSContainer` | ✅ Complete |
 
-**Kafka:**
+**Example - Kafka:**
 ```python
 from testcontainers.modules.kafka import KafkaContainer
 
@@ -191,7 +213,7 @@ with KafkaContainer() as kafka:
     bootstrap = kafka.get_bootstrap_servers()
 ```
 
-**RabbitMQ:**
+**Example - RabbitMQ:**
 ```python
 from testcontainers.modules.rabbitmq import RabbitMQContainer
 
@@ -200,11 +222,18 @@ with RabbitMQContainer() as rabbit:
     amqp_url = rabbit.get_amqp_url()
 ```
 
-**Others:** ActiveMQ, Pulsar, NATS
+#### Search & Vector DBs (6 modules)
 
-### Search & Vector DBs (6 modules)
+| Module | Python Class | Status |
+|--------|-------------|---------|
+| Elasticsearch | `ElasticsearchContainer` | ✅ Complete |
+| Solr | `SolrContainer` | ✅ Complete |
+| ChromaDB | `ChromaDBContainer` | ✅ Complete |
+| Qdrant | `QdrantContainer` | ✅ Complete |
+| Weaviate | `WeaviateContainer` | ✅ Complete |
+| Typesense | `TypesenseContainer` | ✅ Complete |
 
-**Elasticsearch:**
+**Example - Elasticsearch:**
 ```python
 from testcontainers.modules.elasticsearch import ElasticsearchContainer
 
@@ -212,11 +241,24 @@ with ElasticsearchContainer() as es:
     http_url = es.get_http_url()
 ```
 
-**Others:** Solr, ChromaDB, Qdrant, Weaviate, Typesense
+#### Cloud & Services (12 modules)
 
-### Cloud & Services (13 modules)
+| Module | Python Class | Status |
+|--------|-------------|---------|
+| LocalStack | `LocalStackContainer` | ✅ Complete |
+| MinIO | `MinIOContainer` | ✅ Complete |
+| Vault | `VaultContainer` | ✅ Complete |
+| NGINX | `NginxContainer` | ✅ Complete |
+| Selenium | `SeleniumContainer` | ✅ Complete |
+| MockServer | `MockServerContainer` | ✅ Complete |
+| Toxiproxy | `ToxiproxyContainer` | ✅ Complete |
+| ClickHouse | `ClickHouseContainer` | ✅ Complete |
+| CockroachDB | `CockroachDBContainer` | ✅ Complete |
+| Redpanda | `RedpandaContainer` | ✅ Complete |
+| Memcached | `MemcachedContainer` | ✅ Complete |
+| JDBC Base | `JdbcDatabaseContainer` | ✅ Complete |
 
-**LocalStack:**
+**Example - LocalStack:**
 ```python
 from testcontainers.modules.localstack import LocalStackContainer
 
@@ -225,7 +267,21 @@ with LocalStackContainer() as localstack:
     endpoint = localstack.get_url()
 ```
 
-**Others:** MinIO, Vault, NGINX, Selenium, MockServer, Toxiproxy, ClickHouse, CockroachDB, Redpanda, Memcached
+### Remaining Modules (29 not yet converted from Java)
+
+These modules are available in the Java source and can be added incrementally:
+
+**Databases (13):** DB2, Couchbase, CrateDB, Databend, Milvus, OceanBase, OrientDB, Presto, QuestDB, ScyllaDB, TiDB, Trino, YugabyteDB
+
+**Messaging (2):** HiveMQ, Solace
+
+**Cloud (2):** Azure, GCloud
+
+**Monitoring (2):** Grafana, K6
+
+**Infrastructure (3):** Consul, K3s, LDAP
+
+**Other (7):** Ollama, R2DBC, Spock, OpenFGA, Timeplus, and specialized modules
 
 ---
 
