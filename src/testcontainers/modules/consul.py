@@ -124,11 +124,11 @@ class ConsulContainer(GenericContainer):
         """
         Run consul commands using the consul CLI.
 
-        Useful for enabling more secret engines like:
-            .with_consul_command("secrets enable pki")
-            .with_consul_command("secrets enable transit")
-        or register specific K/V like:
+        Useful for registering K/V pairs like:
             .with_consul_command("kv put config/testing1 value123")
+            .with_consul_command("kv put config/testing2 value456")
+        or configuring ACLs:
+            .with_consul_command("acl policy create -name test -rules @policy.hcl")
 
         Args:
             commands: The commands to send to the consul cli

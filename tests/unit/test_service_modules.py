@@ -1,4 +1,4 @@
-"""Tests for Consul, LDAP, Grafana LGTM, and Azure Azurite container modules."""
+"""Tests for new service modules: Consul, LDAP, Grafana LGTM, and Azure Azurite."""
 
 from __future__ import annotations
 
