@@ -2,6 +2,9 @@
 MinIO container implementation.
 
 This module provides a container for MinIO S3-compatible object storage.
+
+Java source:
+https://github.com/testcontainers/testcontainers-java/blob/main/modules/minio/src/main/java/org/testcontainers/containers/MinIOContainer.java
 """
 
 from __future__ import annotations
@@ -16,6 +19,9 @@ class MinIOContainer(GenericContainer):
 
     This container starts a MinIO server instance with configurable
     credentials and exposes both API and console ports.
+
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/modules/minio/src/main/java/org/testcontainers/containers/MinIOContainer.java
 
     Example:
         >>> with MinIOContainer() as minio:

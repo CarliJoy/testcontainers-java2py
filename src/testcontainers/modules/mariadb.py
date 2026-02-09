@@ -1,11 +1,21 @@
-"""MariaDB SQL database container wrapper."""
+"""
+MariaDB SQL database container wrapper.
+
+Java source:
+https://github.com/testcontainers/testcontainers-java/blob/main/modules/mariadb/src/main/java/org/testcontainers/mariadb/MariaDBContainer.java
+"""
 
 from __future__ import annotations
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
 
 
 class MariaDBContainer(JdbcDatabaseContainer):
-    """Wrapper for MariaDB 10.3.6 with MySQL-compatible protocol."""
+    """
+    Wrapper for MariaDB 10.3.6 with MySQL-compatible protocol.
+
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/modules/mariadb/src/main/java/org/testcontainers/mariadb/MariaDBContainer.java
+    """
 
     def __init__(
         self,

@@ -1,4 +1,9 @@
-"""Nginx HTTP server container wrapper."""
+"""
+Nginx HTTP server container wrapper.
+
+Java source:
+https://github.com/testcontainers/testcontainers-java/blob/main/modules/nginx/src/main/java/org/testcontainers/nginx/NginxContainer.java
+"""
 
 from __future__ import annotations
 from testcontainers.core.generic_container import GenericContainer
@@ -6,7 +11,12 @@ from testcontainers.core.container_types import BindMode
 
 
 class NginxContainer(GenericContainer):
-    """Wrapper for Nginx 1.9.4 web server with foreground execution."""
+    """
+    Wrapper for Nginx 1.9.4 web server with foreground execution.
+
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/modules/nginx/src/main/java/org/testcontainers/nginx/NginxContainer.java
+    """
 
     def __init__(self, image: str = "nginx:1.9.4"):
         super().__init__(image)

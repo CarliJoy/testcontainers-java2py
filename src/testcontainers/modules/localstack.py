@@ -1,4 +1,9 @@
-"""LocalStack AWS cloud emulation container wrapper."""
+"""
+LocalStack AWS cloud emulation container wrapper.
+
+Java source:
+https://github.com/testcontainers/testcontainers-java/blob/main/modules/localstack/src/main/java/org/testcontainers/localstack/LocalStackContainer.java
+"""
 
 from __future__ import annotations
 
@@ -9,7 +14,12 @@ from testcontainers.waiting.log import LogMessageWaitStrategy
 
 
 class LocalStackContainer(GenericContainer):
-    """Wrapper for LocalStack AWS service emulation (version 0.11.2)."""
+    """
+    Wrapper for LocalStack AWS service emulation (version 0.11.2).
+
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/modules/localstack/src/main/java/org/testcontainers/localstack/LocalStackContainer.java
+    """
 
     PORT = 4566
     DEFAULT_IMAGE = "localstack/localstack:0.11.2"

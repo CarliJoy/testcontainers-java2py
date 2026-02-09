@@ -2,6 +2,9 @@
 ChromaDB container implementation.
 
 This module provides a container for ChromaDB vector database.
+
+Java source:
+https://github.com/testcontainers/testcontainers-java/blob/main/modules/chromadb/src/main/java/org/testcontainers/chromadb/ChromaDBContainer.java
 """
 
 from __future__ import annotations
@@ -15,6 +18,9 @@ class ChromaDBContainer(GenericContainer):
     ChromaDB vector database container.
 
     This container starts a ChromaDB instance with optional authentication.
+
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/modules/chromadb/src/main/java/org/testcontainers/chromadb/ChromaDBContainer.java
 
     Example:
         >>> with ChromaDBContainer() as chroma:
