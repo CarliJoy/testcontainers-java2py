@@ -1,4 +1,9 @@
-"""Cassandra NoSQL database container wrapper."""
+"""
+Cassandra NoSQL database container wrapper.
+
+Java source:
+https://github.com/testcontainers/testcontainers-java/blob/main/modules/cassandra/src/main/java/org/testcontainers/cassandra/CassandraContainer.java
+"""
 
 from __future__ import annotations
 from testcontainers.core.generic_container import GenericContainer
@@ -6,7 +11,12 @@ from testcontainers.waiting.log import LogMessageWaitStrategy
 
 
 class CassandraContainer(GenericContainer):
-    """Wrapper for Cassandra 3.11.2 NoSQL database with CQL protocol."""
+    """
+    Wrapper for Cassandra 3.11.2 NoSQL database with CQL protocol.
+
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/modules/cassandra/src/main/java/org/testcontainers/cassandra/CassandraContainer.java
+    """
 
     def __init__(self, image: str = "cassandra:3.11.2"):
         super().__init__(image)

@@ -1,4 +1,9 @@
-"""Neo4j graph database container wrapper."""
+"""
+Neo4j graph database container wrapper.
+
+Java source:
+https://github.com/testcontainers/testcontainers-java/blob/main/modules/neo4j/src/main/java/org/testcontainers/neo4j/Neo4jContainer.java
+"""
 
 from __future__ import annotations
 from testcontainers.core.generic_container import GenericContainer
@@ -8,7 +13,12 @@ from testcontainers.waiting.wait_all import WaitAllStrategy
 
 
 class Neo4jContainer(GenericContainer):
-    """Wrapper providing Neo4j 4.4 graph database with configurable auth and plugins."""
+    """
+    Wrapper providing Neo4j 4.4 graph database with configurable auth and plugins.
+
+    Java source:
+    https://github.com/testcontainers/testcontainers-java/blob/main/modules/neo4j/src/main/java/org/testcontainers/neo4j/Neo4jContainer.java
+    """
 
     def __init__(self, image: str = "neo4j:4.4"):
         super().__init__(image)
