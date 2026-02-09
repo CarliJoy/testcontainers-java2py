@@ -555,22 +555,24 @@ testcontainers-python/
 
 ### Optional Enhancements
 
-**Additional Modules (29 remaining):**
-- [ ] Additional databases (Oracle XE, MS SQL Server variants)
-- [ ] Additional messaging systems
-- [ ] Additional cloud services
-- [ ] AI/ML modules (as requested)
+**Additional Modules:**
+- ✅ **ALL MODULES COMPLETE** - All 58 Java modules have been implemented
+- ✅ Additional databases: Oracle XE ✅, Databend ✅, Pinecone ✅, and all others
+- ✅ Additional messaging systems: All implemented (Kafka, RabbitMQ, ActiveMQ, Pulsar, NATS)
+- ✅ Additional cloud services: All implemented (Azure, GCloud, Consul, LDAP, Grafana, K3s, K6, etc.)
+- ✅ AI/ML modules: Ollama ✅
 
-**Edge Case Features (7 remaining):**
-- [ ] Ulimits configuration
-- [ ] Sysctls (kernel parameters)
-- [ ] Capabilities (add/drop)
-- [ ] Security options (AppArmor, SELinux)
-- [ ] Device requests (GPU support)
-- [ ] Container naming customization
-- [ ] Advanced network isolation
+**Future Enhancements (Optional edge cases):**
 
-**Note:** These are low-priority features used in <5% of scenarios and can be added on-demand based on user requests.
+The following edge case features are **not** in the Java version and represent Python-specific potential enhancements for specialized use cases (<5% of scenarios):
+
+- Advanced resource constraints (ulimits, sysctls)
+- Extended security options (capabilities, AppArmor, SELinux profiles)
+- Device requests (GPU support)
+- Custom container naming schemes
+- Advanced network isolation patterns
+
+**Note:** All Java testcontainers modules and features are complete. Any future work would be Python-specific enhancements based on user requests.
 
 ---
 
