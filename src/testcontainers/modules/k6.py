@@ -10,6 +10,7 @@ https://github.com/testcontainers/testcontainers-java/blob/main/modules/k6/src/m
 from __future__ import annotations
 
 import os
+import tempfile
 from typing import Any
 
 from testcontainers.core.generic_container import GenericContainer
@@ -65,7 +66,13 @@ class K6Container(GenericContainer):
 
         Returns:
             This container instance
+
+        Raises:
+            FileNotFoundError: If the test script file does not exist
         """
+        if not os.path.exists(test_script):
+            raise FileNotFoundError(f"Test script not found: {test_script}")
+
         script_name = os.path.basename(test_script)
         self._test_script = f"/home/k6/{script_name}"
         self.with_volume_mapping(test_script, self._test_script)

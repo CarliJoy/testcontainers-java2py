@@ -9,6 +9,10 @@ https://github.com/testcontainers/testcontainers-java/blob/main/modules/milvus/s
 
 from __future__ import annotations
 
+import os
+import tempfile
+from typing import Optional
+
 from testcontainers.core.generic_container import GenericContainer
 from testcontainers.waiting.http import HttpWaitStrategy
 
@@ -58,7 +62,8 @@ advertise-client-urls: http://0.0.0.0:2379
         """
         super().__init__(image)
 
-        self._etcd_endpoint: str | None = None
+        self._etcd_endpoint: Optional[str] = None
+        self._temp_etcd_config: Optional[str] = None
 
         # Expose ports
         self.with_exposed_ports(self.MANAGEMENT_PORT, self.HTTP_PORT)
@@ -101,18 +106,18 @@ advertise-client-urls: http://0.0.0.0:2379
             self.with_env("ETCD_DATA_DIR", "/var/lib/milvus/etcd")
             self.with_env("ETCD_CONFIG_PATH", "/milvus/configs/embedEtcd.yaml")
 
-            # Create embedEtcd.yaml configuration in container
-            # We'll use a bind mount or copy the file
-            import tempfile
-            import os
-
             # Create temporary file with etcd config
-            with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
-                f.write(self._EMBED_ETCD_YAML)
-                temp_path = f.name
+            try:
+                with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yaml") as f:
+                    f.write(self._EMBED_ETCD_YAML)
+                    self._temp_etcd_config = f.name
 
-            self.with_volume_mapping(temp_path, "/milvus/configs/embedEtcd.yaml")
-            self._temp_etcd_config = temp_path
+                self.with_volume_mapping(self._temp_etcd_config, "/milvus/configs/embedEtcd.yaml")
+            except Exception:
+                # Clean up temp file if configuration fails
+                if self._temp_etcd_config and os.path.exists(self._temp_etcd_config):
+                    os.unlink(self._temp_etcd_config)
+                raise
         else:
             # Use external etcd
             self.with_env("ETCD_ENDPOINTS", self._etcd_endpoint)
@@ -138,13 +143,13 @@ advertise-client-urls: http://0.0.0.0:2379
         super().stop(**kwargs)
 
         # Clean up temporary etcd config file if it exists
-        if hasattr(self, "_temp_etcd_config"):
-            import os
-
+        if self._temp_etcd_config:
             try:
                 os.unlink(self._temp_etcd_config)
             except (OSError, FileNotFoundError):
                 pass
+            finally:
+                self._temp_etcd_config = None
 
     def get_endpoint(self) -> str:
         """

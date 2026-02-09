@@ -30,11 +30,23 @@ class TestK6Container:
 
     def test_k6_with_test_script(self):
         """Test setting test script with fluent API."""
-        k6 = K6Container()
-        result = k6.with_test_script("/path/to/test.js")
+        import tempfile
+        import os
 
-        assert result is k6
-        assert k6._test_script == "/home/k6/test.js"
+        # Create a temporary test script file
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".js") as f:
+            f.write("export default function() {}")
+            temp_script = f.name
+
+        try:
+            k6 = K6Container()
+            result = k6.with_test_script(temp_script)
+
+            assert result is k6
+            assert k6._test_script == f"/home/k6/{os.path.basename(temp_script)}"
+        finally:
+            # Clean up
+            os.unlink(temp_script)
 
     def test_k6_with_cmd_options(self):
         """Test setting command options with fluent API."""
