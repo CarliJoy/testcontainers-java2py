@@ -56,6 +56,10 @@ __all__ = [
     "OrientDBContainer",
     "YugabyteDBYSQLContainer",
     "YugabyteDBYCQLContainer",
+    "HiveMQContainer",
+    "TiDBContainer",
+    "ScyllaDBContainer",
+    "K3sContainer",
 ]
 
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
@@ -102,3 +106,7 @@ from testcontainers.modules.azure import AzuriteContainer
 from testcontainers.modules.questdb import QuestDBContainer
 from testcontainers.modules.orientdb import OrientDBContainer
 from testcontainers.modules.yugabytedb import YugabyteDBYSQLContainer, YugabyteDBYCQLContainer
+from testcontainers.modules.hivemq import HiveMQContainer
+from testcontainers.modules.tidb import TiDBContainer
+from testcontainers.modules.scylladb import ScyllaDBContainer
+from testcontainers.modules.k3s import K3sContainer
