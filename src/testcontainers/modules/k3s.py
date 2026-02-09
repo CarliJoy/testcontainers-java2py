@@ -66,7 +66,7 @@ class K3sContainer(GenericContainer):
 
         # Set K3s server command with placeholder for TLS SAN
         # We'll update this in start() when we know the actual host
-        self.with_command("server", "--disable=traefik")
+        self.with_command(["server", "--disable=traefik"])
 
         # Wait for K3s to be ready
         self.waiting_for(LogMessageWaitStrategy().with_regex(r".*Node controller sync successful.*"))
@@ -87,7 +87,7 @@ class K3sContainer(GenericContainer):
         has_tls_san = any("--tls-san=" in str(arg) for arg in current_command)
         if not has_tls_san:
             current_command.append(f"--tls-san={self.get_host()}")
-            self.with_command(*current_command)
+            self.with_command(current_command)
         
         super().start()
 
