@@ -1,0 +1,106 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "testcontainers-python"
+version = "0.1.0"
+description = "Python implementation of Testcontainers - Docker container management for tests"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Testcontainers Contributors"}
+]
+keywords = ["testing", "docker", "containers", "integration-testing"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Testing",
+]
+
+dependencies = [
+    # Docker client library
+    "docker>=6.0.0,<8.0.0",
+    # Type checking support
+    "typing-extensions>=4.0.0; python_version < '3.11'",
+    # TOML configuration support
+    "tomli>=2.0.0; python_version < '3.11'",
+    # YAML support for Docker Compose
+    "pyyaml>=6.0.0",
+]
+
+[dependency-groups]
+test = [
+    # Testing frameworks
+    "pytest>=7.0.0,<9.0.0",
+    "pytest-cov>=4.0.0,<6.0.0",
+    "pytest-mock>=3.10.0",
+    "pytest-timeout>=2.1.0",
+]
+
+lint = [
+    # Type checking
+    "mypy>=1.0.0,<2.0.0",
+    "types-docker>=6.0.0",
+    "types-PyYAML>=6.0.0",
+    # Linting and formatting
+    "ruff>=0.1.0,<0.3.0",
+    "black>=23.0.0,<25.0.0",
+]
+
+docs = [
+    # Documentation generation
+    "sphinx>=6.0.0,<8.0.0",
+    "sphinx-rtd-theme>=1.2.0",
+]
+dev = [
+    {include-group = "test"},
+    {include-group = "lint"},
+    {include-group = "docs"},
+]
+
+# For easy installation of all dev dependencies (backward compat)
+all = [
+    "testcontainers-python[dev]",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.entry-points.pytest11]
+testcontainers = "testcontainers.pytest.plugin"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "T20"]
+ignore = []
+
+[tool.ruff.per-file-ignores]
+"tests/*" = ["T20"]  # Allow print in tests

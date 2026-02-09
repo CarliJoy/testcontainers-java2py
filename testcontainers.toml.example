@@ -1,0 +1,39 @@
+# Testcontainers Configuration File
+#
+# This file demonstrates the available configuration options for testcontainers-python.
+# Place this file in your project root or home directory as:
+# - ./testcontainers.toml (project-specific)
+# - ~/.testcontainers/testcontainers.toml (user-wide)
+
+# Hub Image Name Prefix
+# ----------------------
+# Automatically prefix Docker Hub images with a private registry.
+# Useful for avoiding Docker Hub rate limits or enforcing corporate policies.
+#
+# Example: postgres:13 becomes registry.corp.com/mirror/postgres:13
+[hub]
+image_name_prefix = "registry.corp.com/mirror"
+
+# Image Mappings
+# --------------
+# Map specific images to alternatives.
+# Useful for using patched versions or approved images.
+#
+# Format: "source:tag" = "destination:tag"
+[image_mappings]
+"postgres:13" = "registry.corp.com/custom/postgres:13-patched"
+"mysql:8.0" = "registry.corp.com/approved/mysql:8.0"
+"redis:alpine" = "registry.corp.com/cache/redis:alpine"
+
+# Ryuk Configuration
+# ------------------
+# Ryuk is a container that cleans up containers after tests.
+# You can disable it if needed (not recommended for CI).
+[ryuk]
+disabled = false
+
+# Note: You can also configure these via environment variables:
+# - TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX
+# - TESTCONTAINERS_RYUK_DISABLED
+#
+# Environment variables take precedence over this file.
