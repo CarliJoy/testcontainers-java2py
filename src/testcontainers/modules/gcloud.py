@@ -48,7 +48,7 @@ class BigtableEmulatorContainer(GenericContainer):
             LogMessageWaitStrategy()
             .with_regex(r".*running.*$")
         )
-        self.with_command("/bin/sh", "-c", "gcloud beta emulators bigtable start --host-port 0.0.0.0:9000")
+        self.with_command(["/bin/sh", "-c", "gcloud beta emulators bigtable start --host-port 0.0.0.0:9000"])
 
     def get_emulator_endpoint(self) -> str:
         """
@@ -102,7 +102,7 @@ class PubSubEmulatorContainer(GenericContainer):
             LogMessageWaitStrategy()
             .with_regex(r".*started.*$")
         )
-        self.with_command("/bin/sh", "-c", "gcloud beta emulators pubsub start --host-port 0.0.0.0:8085")
+        self.with_command(["/bin/sh", "-c", "gcloud beta emulators pubsub start --host-port 0.0.0.0:8085"])
 
     def get_emulator_endpoint(self) -> str:
         """
@@ -149,8 +149,8 @@ class DatastoreEmulatorContainer(GenericContainer):
         self.with_exposed_ports(self.HTTP_PORT)
         self.waiting_for(
             HttpWaitStrategy()
-            .with_path("/")
-            .with_status_code(200)
+            .for_path("/")
+            .for_status_code(200)
         )
 
     def with_flags(self, flags: str) -> DatastoreEmulatorContainer:
@@ -177,7 +177,7 @@ class DatastoreEmulatorContainer(GenericContainer):
         if self._flags:
             command += f" {self._flags}"
 
-        self.with_command("/bin/sh", "-c", command)
+        self.with_command(["/bin/sh", "-c", command])
         super().start()
         return self
 
@@ -260,7 +260,7 @@ class FirestoreEmulatorContainer(GenericContainer):
         if self._flags:
             command += f" {self._flags}"
 
-        self.with_command("/bin/sh", "-c", command)
+        self.with_command(["/bin/sh", "-c", command])
         super().start()
         return self
 
@@ -362,7 +362,7 @@ class BigQueryEmulatorContainer(GenericContainer):
         super().__init__(image)
 
         self.with_exposed_ports(self.HTTP_PORT, self.GRPC_PORT)
-        self.with_command("--project", self.PROJECT_ID)
+        self.with_command(["--project", self.PROJECT_ID])
 
     def get_emulator_http_endpoint(self) -> str:
         """
