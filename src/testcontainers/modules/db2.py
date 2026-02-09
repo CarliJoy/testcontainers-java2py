@@ -49,7 +49,7 @@ class Db2Container(JdbcDatabaseContainer):
     DEFAULT_TAG = "11.5.0.0a"
     DB2_PORT = 50000
     DEFAULT_USERNAME = "db2inst1"
-    DEFAULT_PASSWORD = "foobar1234"
+    DEFAULT_PASSWORD = "foobar1234"  # Default from Java - change for production
     DEFAULT_DATABASE = "test"
 
     def __init__(

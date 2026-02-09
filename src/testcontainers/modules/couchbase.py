@@ -105,13 +105,13 @@ class BucketDefinition:
         Set a custom bucket quota (100MiB by default).
 
         Args:
-            quota: The quota in mebibytes
+            quota: The quota in mebibytes (MiB)
 
         Returns:
             This bucket definition for method chaining
         """
         if quota < 100:
-            raise ValueError("Bucket quota cannot be less than 100MB!")
+            raise ValueError("Bucket quota cannot be less than 100MiB!")
         self.quota = quota
         return self
 
