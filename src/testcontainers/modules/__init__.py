@@ -60,6 +60,10 @@ __all__ = [
     "TiDBContainer",
     "ScyllaDBContainer",
     "K3sContainer",
+    "K6Container",
+    "PrestoContainer",
+    "TrinoContainer",
+    "MilvusContainer",
 ]
 
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
@@ -110,3 +114,7 @@ from testcontainers.modules.hivemq import HiveMQContainer
 from testcontainers.modules.tidb import TiDBContainer
 from testcontainers.modules.scylladb import ScyllaDBContainer
 from testcontainers.modules.k3s import K3sContainer
+from testcontainers.modules.k6 import K6Container
+from testcontainers.modules.presto import PrestoContainer
+from testcontainers.modules.trino import TrinoContainer
+from testcontainers.modules.milvus import MilvusContainer
