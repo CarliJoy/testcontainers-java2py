@@ -35,19 +35,11 @@ class MariaDBContainer(JdbcDatabaseContainer):
     ):
         super().__init__(image=image, port=self.MARIADB_PORT, username=username, password=password, dbname=dbname)
         
-        # Configure environment variables
-        self._configure()
-        
         # Set startup attempts like Java (line 87 in Java source)
         self._startup_attempts = 3
         
-        # Add wait strategy matching Java/MySQL behavior
-        # MariaDB uses the same "ready for connections" message as MySQL
-        self.waiting_for(
-            LogMessageWaitStrategy()
-            .with_regex(r".*ready for connections.*")
-            .with_times(2)  # MariaDB logs this twice during startup
-        )
+        # Configure environment variables
+        self._configure()
 
     def _configure(self) -> None:
         """Configure environment variables for MariaDB initialization."""
@@ -55,7 +47,8 @@ class MariaDBContainer(JdbcDatabaseContainer):
         self.with_env("MYSQL_DATABASE", self._dbname)
         
         # Handle non-root users (Java logic from lines 68-72)
-        is_root_user = self._username.lower() == self.MYSQL_ROOT_USER.lower()
+        # Note: Username comparison is case-sensitive (MySQL/MariaDB are case-sensitive for usernames)
+        is_root_user = self._username == self.MYSQL_ROOT_USER
         if not is_root_user:
             self.with_env("MYSQL_USER", self._username)
         
@@ -68,6 +61,14 @@ class MariaDBContainer(JdbcDatabaseContainer):
             self.with_env("MYSQL_ALLOW_EMPTY_PASSWORD", "yes")
         else:
             raise ValueError("Empty password can be used only with the root user")
+        
+        # Add wait strategy matching Java/MySQL behavior (moved inside _configure for consistency)
+        # MariaDB uses the same "ready for connections" message as MySQL
+        self.waiting_for(
+            LogMessageWaitStrategy()
+            .with_regex(r".*ready for connections.*")
+            .with_times(2)  # MariaDB logs this twice during startup
+        )
 
     def get_driver_class_name(self) -> str:
         """Get the JDBC driver class name for MariaDB."""

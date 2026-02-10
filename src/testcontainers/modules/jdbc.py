@@ -197,7 +197,10 @@ class JdbcDatabaseContainer(GenericContainer):
 
     def with_init_script(self, script_path: str) -> JdbcDatabaseContainer:
         """
-        Add an initialization script to run when the database starts (fluent API).
+        Set a single initialization script to run when the database starts (fluent API).
+
+        This replaces any previously configured scripts. To append multiple scripts,
+        use with_init_scripts() instead.
 
         The script will be executed after the database is ready. This is useful
         for creating schemas, inserting test data, etc.
