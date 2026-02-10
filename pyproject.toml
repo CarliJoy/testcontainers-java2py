@@ -60,10 +60,18 @@ docs = [
     "sphinx>=6.0.0,<8.0.0",
     "sphinx-rtd-theme>=1.2.0",
 ]
+
+# Optional dependencies for database connectivity testing
+database = [
+    # SqlAlchemy for database connection wait strategies
+    "sqlalchemy>=2.0.0,<3.0.0",
+]
+
 dev = [
     {include-group = "test"},
     {include-group = "lint"},
     {include-group = "docs"},
+    {include-group = "database"},
 ]
 
 # For easy installation of all dev dependencies (backward compat)

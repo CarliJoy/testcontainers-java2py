@@ -257,3 +257,79 @@ class JdbcDatabaseContainer(GenericContainer):
 
         params = [f"{key}={value}" for key, value in self._url_parameters.items()]
         return start_char + delimiter.join(params)
+
+    @abstractmethod
+    def get_connection_string(self) -> str:
+        """
+        Get the database connection string in Python native format.
+
+        This method returns a connection string suitable for use with Python
+        database drivers (e.g., psycopg2, pymysql) and ORMs like SqlAlchemy.
+
+        Subclasses must implement this to return the database-specific connection string.
+
+        Returns:
+            Database connection string (e.g., "postgresql://user:pass@host:port/db")
+
+        Example:
+            >>> postgres = PostgreSQLContainer()
+            >>> postgres.start()
+            >>> url = postgres.get_connection_string()
+            >>> # Returns: "postgresql://test:test@localhost:32768/test"
+        """
+        pass
+
+    def get_test_query_string(self) -> str:
+        """
+        Get the test query string for checking database connectivity.
+
+        This query is used by the SqlAlchemy wait strategy to verify the database
+        is ready. Most databases support "SELECT 1" as a simple connectivity test.
+
+        Subclasses can override this to provide database-specific test queries.
+
+        Returns:
+            SQL query string (default: "SELECT 1")
+
+        Example:
+            >>> postgres = PostgreSQLContainer()
+            >>> query = postgres.get_test_query_string()
+            >>> # Returns: "SELECT 1"
+        """
+        return "SELECT 1"
+
+    def with_sqlalchemy_wait_strategy(self, timeout_seconds: int = 120) -> JdbcDatabaseContainer:
+        """
+        Configure the container to use SqlAlchemy connection testing as wait strategy.
+
+        This mimics Java's JdbcDatabaseContainer.waitUntilContainerStarted() method,
+        which tests database connectivity by attempting to connect and execute a test query.
+
+        Instead of waiting for log messages, this actively tests the database connection
+        using SqlAlchemy, ensuring the database is truly ready to accept queries.
+
+        Args:
+            timeout_seconds: Maximum time to wait for database (default: 120)
+
+        Returns:
+            This container instance
+
+        Example:
+            >>> from testcontainers.modules.postgres import PostgreSQLContainer
+            >>> postgres = PostgreSQLContainer()
+            >>> postgres.with_sqlalchemy_wait_strategy(timeout_seconds=60)
+            >>> postgres.start()
+
+        Note:
+            Requires sqlalchemy to be installed: pip install sqlalchemy
+        """
+        from datetime import timedelta
+
+        from testcontainers.waiting.sqlalchemy import SqlAlchemyWaitStrategy
+
+        self.waiting_for(
+            SqlAlchemyWaitStrategy()
+            .with_query(self.get_test_query_string())
+            .with_startup_timeout(timedelta(seconds=timeout_seconds))
+        )
+        return self
