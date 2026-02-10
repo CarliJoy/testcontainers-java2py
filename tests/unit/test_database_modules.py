@@ -461,7 +461,7 @@ class TestJdbcDatabaseContainer:
 
         assert container.get_connection_url() == container.get_jdbc_url()
 
-    def test_jdbc_get_port(self):
+    def test_jdbc_get_port(self, monkeypatch):
         """Test JDBC get_port returns mapped port."""
         class TestJdbcContainer(JdbcDatabaseContainer):
             def get_driver_class_name(self) -> str:
@@ -473,8 +473,8 @@ class TestJdbcDatabaseContainer:
         container = TestJdbcContainer("test:latest", port=5432)
         container._container = MagicMock()
 
-        with patch.object(container, 'get_mapped_port', return_value=32768):
-            port = container.get_port()
+        monkeypatch.setattr(container, 'get_mapped_port', lambda port: 32768)
+        port = container.get_port()
 
         assert port == 32768
 
