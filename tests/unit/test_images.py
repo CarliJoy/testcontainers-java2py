@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 from datetime import datetime, timedelta
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, MagicMock
 
 import pytest
 
@@ -185,11 +185,13 @@ class TestRemoteDockerImage:
         assert "RemoteDockerImage" in repr(image)
         assert "nginx:latest" in repr(image)
     
-    @patch.object(RemoteDockerImage, '_pull_image')
-    def test_resolve_with_pull(self, mock_pull):
+    def test_resolve_with_pull(self, monkeypatch: pytest.MonkeyPatch):
         """Test resolve when policy says to pull."""
         mock_client = Mock()
         policy = AlwaysPullPolicy()
+        
+        mock_pull = Mock()
+        monkeypatch.setattr(RemoteDockerImage, '_pull_image', mock_pull)
         
         image = RemoteDockerImage("nginx:latest", pull_policy=policy, docker_client=mock_client)
         

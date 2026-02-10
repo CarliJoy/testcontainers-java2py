@@ -6,7 +6,7 @@ This module tests the NGINX, LocalStack, MinIO, Vault, and Memcached container i
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 import pytest
 from testcontainers.modules.nginx import NGINXContainer
 from testcontainers.modules.localstack import LocalStackContainer
@@ -48,14 +48,14 @@ class TestNGINXContainer:
         
         assert 80 in nginx._exposed_ports
 
-    def test_nginx_get_base_url_with_mock(self):
+    def test_nginx_get_base_url_with_mock(self, monkeypatch: pytest.MonkeyPatch):
         """Test that get_base_url generates correct URL with mocked container."""
         nginx = NGINXContainer()
         nginx._container = MagicMock()
         
-        with patch.object(nginx, 'get_host', return_value='localhost'):
-            with patch.object(nginx, 'get_mapped_port', return_value=80):
-                url = nginx.get_base_url("http", 80)
+        monkeypatch.setattr(nginx, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(nginx, 'get_mapped_port', lambda port: 80)
+        url = nginx.get_base_url("http", 80)
         
         assert url == "http://localhost:80"
 
@@ -114,14 +114,14 @@ class TestLocalStackContainer:
         assert result is localstack
         assert localstack._enabled_services == []
 
-    def test_localstack_get_url_with_mock(self):
+    def test_localstack_get_url_with_mock(self, monkeypatch: pytest.MonkeyPatch):
         """Test that get_url generates correct URL with mocked container."""
         localstack = LocalStackContainer()
         localstack._container = MagicMock()
         
-        with patch.object(localstack, 'get_host', return_value='localhost'):
-            with patch.object(localstack, 'get_mapped_port', return_value=4566):
-                url = localstack.get_url()
+        monkeypatch.setattr(localstack, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(localstack, 'get_mapped_port', lambda port: 4566)
+        url = localstack.get_url()
         
         assert url == "http://localhost:4566"
 

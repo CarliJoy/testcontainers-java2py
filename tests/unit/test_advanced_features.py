@@ -5,7 +5,7 @@ Tests for advanced container features: networks, dependencies, file copying, and
 from __future__ import annotations
 
 import pytest
-from unittest.mock import Mock, MagicMock, patch, call
+from unittest.mock import Mock, MagicMock, call
 import tempfile
 import os
 
@@ -24,7 +24,7 @@ class TestNetwork:
         client.networks = Mock()
         return client
 
-    def test_network_creation(self, mock_client):
+    def test_network_creation(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test network creation."""
         mock_network = Mock()
         mock_network.id = "net123"
@@ -33,18 +33,19 @@ class TestNetwork:
         mock_factory = Mock()
         mock_factory.client.return_value = mock_client
         
-        with patch('testcontainers.core.network.DockerClientFactory.instance', return_value=mock_factory):
-            with patch('testcontainers.core.network.DockerClientFactory.marker_labels', return_value={}):
-                network = NetworkImpl(name="test-network")
-                net_id = network.get_id()
+        monkeypatch.setattr('testcontainers.core.network.DockerClientFactory.instance', lambda: mock_factory)
+        monkeypatch.setattr('testcontainers.core.network.DockerClientFactory.marker_labels', lambda: {})
+        
+        network = NetworkImpl(name="test-network")
+        net_id = network.get_id()
 
-                assert net_id == "net123"
-                assert mock_client.networks.create.called
-                call_kwargs = mock_client.networks.create.call_args[1]
-                assert call_kwargs["name"] == "test-network"
-                assert call_kwargs["check_duplicate"] is True
+        assert net_id == "net123"
+        assert mock_client.networks.create.called
+        call_kwargs = mock_client.networks.create.call_args[1]
+        assert call_kwargs["name"] == "test-network"
+        assert call_kwargs["check_duplicate"] is True
 
-    def test_network_with_driver(self, mock_client):
+    def test_network_with_driver(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test network with custom driver."""
         mock_network = Mock()
         mock_network.id = "net456"
@@ -53,15 +54,16 @@ class TestNetwork:
         mock_factory = Mock()
         mock_factory.client.return_value = mock_client
         
-        with patch('testcontainers.core.network.DockerClientFactory.instance', return_value=mock_factory):
-            with patch('testcontainers.core.network.DockerClientFactory.marker_labels', return_value={}):
-                network = NetworkImpl(driver="overlay")
-                network.get_id()
+        monkeypatch.setattr('testcontainers.core.network.DockerClientFactory.instance', lambda: mock_factory)
+        monkeypatch.setattr('testcontainers.core.network.DockerClientFactory.marker_labels', lambda: {})
+        
+        network = NetworkImpl(driver="overlay")
+        network.get_id()
 
-                call_kwargs = mock_client.networks.create.call_args[1]
-                assert call_kwargs["driver"] == "overlay"
+        call_kwargs = mock_client.networks.create.call_args[1]
+        assert call_kwargs["driver"] == "overlay"
 
-    def test_network_with_ipv6(self, mock_client):
+    def test_network_with_ipv6(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test network with IPv6 enabled."""
         mock_network = Mock()
         mock_network.id = "net789"
@@ -70,15 +72,16 @@ class TestNetwork:
         mock_factory = Mock()
         mock_factory.client.return_value = mock_client
         
-        with patch('testcontainers.core.network.DockerClientFactory.instance', return_value=mock_factory):
-            with patch('testcontainers.core.network.DockerClientFactory.marker_labels', return_value={}):
-                network = NetworkImpl(enable_ipv6=True)
-                network.get_id()
+        monkeypatch.setattr('testcontainers.core.network.DockerClientFactory.instance', lambda: mock_factory)
+        monkeypatch.setattr('testcontainers.core.network.DockerClientFactory.marker_labels', lambda: {})
+        
+        network = NetworkImpl(enable_ipv6=True)
+        network.get_id()
 
-                call_kwargs = mock_client.networks.create.call_args[1]
-                assert call_kwargs["enable_ipv6"] is True
+        call_kwargs = mock_client.networks.create.call_args[1]
+        assert call_kwargs["enable_ipv6"] is True
 
-    def test_network_lazy_initialization(self, mock_client):
+    def test_network_lazy_initialization(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test network lazy initialization."""
         mock_network = Mock()
         mock_network.id = "netlazy"
@@ -87,25 +90,26 @@ class TestNetwork:
         mock_factory = Mock()
         mock_factory.client.return_value = mock_client
         
-        with patch('testcontainers.core.network.DockerClientFactory.instance', return_value=mock_factory):
-            with patch('testcontainers.core.network.DockerClientFactory.marker_labels', return_value={}):
-                network = NetworkImpl()
-                
-                # Network not created yet
-                assert not mock_client.networks.create.called
-                
-                # Access ID triggers creation
-                net_id = network.get_id()
-                assert net_id == "netlazy"
-                assert mock_client.networks.create.called
-                
-                # Subsequent calls don't recreate
-                mock_client.networks.create.reset_mock()
-                net_id2 = network.get_id()
-                assert net_id2 == "netlazy"
-                assert not mock_client.networks.create.called
+        monkeypatch.setattr('testcontainers.core.network.DockerClientFactory.instance', lambda: mock_factory)
+        monkeypatch.setattr('testcontainers.core.network.DockerClientFactory.marker_labels', lambda: {})
+        
+        network = NetworkImpl()
+        
+        # Network not created yet
+        assert not mock_client.networks.create.called
+        
+        # Access ID triggers creation
+        net_id = network.get_id()
+        assert net_id == "netlazy"
+        assert mock_client.networks.create.called
+        
+        # Subsequent calls don't recreate
+        mock_client.networks.create.reset_mock()
+        net_id2 = network.get_id()
+        assert net_id2 == "netlazy"
+        assert not mock_client.networks.create.called
 
-    def test_network_close(self, mock_client):
+    def test_network_close(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test network cleanup."""
         mock_network = Mock()
         mock_network.id = "netclose"
@@ -114,15 +118,16 @@ class TestNetwork:
         mock_factory = Mock()
         mock_factory.client.return_value = mock_client
         
-        with patch('testcontainers.core.network.DockerClientFactory.instance', return_value=mock_factory):
-            with patch('testcontainers.core.network.DockerClientFactory.marker_labels', return_value={}):
-                network = NetworkImpl()
-                network.get_id()
-                
-                network.close()
-                assert mock_network.remove.called
+        monkeypatch.setattr('testcontainers.core.network.DockerClientFactory.instance', lambda: mock_factory)
+        monkeypatch.setattr('testcontainers.core.network.DockerClientFactory.marker_labels', lambda: {})
+        
+        network = NetworkImpl()
+        network.get_id()
+        
+        network.close()
+        assert mock_network.remove.called
 
-    def test_network_context_manager(self, mock_client):
+    def test_network_context_manager(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test network as context manager."""
         mock_network = Mock()
         mock_network.id = "netctx"
@@ -131,14 +136,15 @@ class TestNetwork:
         mock_factory = Mock()
         mock_factory.client.return_value = mock_client
         
-        with patch('testcontainers.core.network.DockerClientFactory.instance', return_value=mock_factory):
-            with patch('testcontainers.core.network.DockerClientFactory.marker_labels', return_value={}):
-                with NetworkImpl() as network:
-                    net_id = network.get_id()
-                    assert net_id == "netctx"
-                
-                # Should be closed after context
-                assert mock_network.remove.called
+        monkeypatch.setattr('testcontainers.core.network.DockerClientFactory.instance', lambda: mock_factory)
+        monkeypatch.setattr('testcontainers.core.network.DockerClientFactory.marker_labels', lambda: {})
+        
+        with NetworkImpl() as network:
+            net_id = network.get_id()
+            assert net_id == "netctx"
+        
+        # Should be closed after context
+        assert mock_network.remove.called
 
     def test_shared_network_cannot_be_closed(self):
         """Test that SHARED network cannot be closed by users."""
@@ -192,10 +198,10 @@ class TestGenericContainerNetworking:
         assert result is container
         assert container._network_aliases == ["alias1", "alias2"]
 
-    @patch('testcontainers.images.remote_image.RemoteDockerImage.resolve')
-    def test_start_with_network(self, mock_resolve, mock_client, mock_network):
+    def test_start_with_network(self, mock_client, mock_network, monkeypatch: pytest.MonkeyPatch):
         """Test starting container with network."""
-        mock_resolve.return_value = "test:latest"
+        monkeypatch.setattr('testcontainers.images.remote_image.RemoteDockerImage.resolve', lambda self: "test:latest")
+        
         mock_container = Mock()
         mock_container.id = "container123"
         mock_container.status = "running"
@@ -206,8 +212,8 @@ class TestGenericContainerNetworking:
         container.with_network(mock_network)
         container.with_network_aliases("alias1")
         
-        with patch('testcontainers.waiting.port.HostPortWaitStrategy.wait_until_ready'):
-            container.start()
+        monkeypatch.setattr('testcontainers.waiting.port.HostPortWaitStrategy.wait_until_ready', lambda self, container: None)
+        container.start()
 
         # Check that network was used in container creation
         create_kwargs = mock_client.containers.create.call_args[1]
@@ -239,10 +245,10 @@ class TestGenericContainerDependencies:
         assert container1 in container3._dependencies
         assert container2 in container3._dependencies
 
-    @patch('testcontainers.images.remote_image.RemoteDockerImage.resolve')
-    def test_start_starts_dependencies(self, mock_resolve, mock_client):
+    def test_start_starts_dependencies(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test that starting container starts its dependencies."""
-        mock_resolve.return_value = "test:latest"
+        monkeypatch.setattr('testcontainers.images.remote_image.RemoteDockerImage.resolve', lambda self: "test:latest")
+        
         mock_container = Mock()
         mock_container.id = "container123"
         mock_container.status = "running"
@@ -258,8 +264,8 @@ class TestGenericContainerDependencies:
         container = GenericContainer("test:latest", docker_client=mock_client)
         container.depends_on(dependency)
 
-        with patch('testcontainers.waiting.port.HostPortWaitStrategy.wait_until_ready'):
-            container.start()
+        monkeypatch.setattr('testcontainers.waiting.port.HostPortWaitStrategy.wait_until_ready', lambda self, container: None)
+        container.start()
 
         # Dependency should be started
         assert dependency.start.called
@@ -294,10 +300,10 @@ class TestGenericContainerFileCopying:
         assert "/host/file" in container._copy_to_container
         assert container._copy_to_container["/host/file"] == "/container/file"
 
-    @patch('testcontainers.images.remote_image.RemoteDockerImage.resolve')
-    def test_copy_files_on_start(self, mock_resolve, mock_client, temp_file):
+    def test_copy_files_on_start(self, mock_client, temp_file, monkeypatch: pytest.MonkeyPatch):
         """Test that files are copied when container starts."""
-        mock_resolve.return_value = "test:latest"
+        monkeypatch.setattr('testcontainers.images.remote_image.RemoteDockerImage.resolve', lambda self: "test:latest")
+        
         mock_container = Mock()
         mock_container.id = "container123"
         mock_container.status = "running"
@@ -307,12 +313,14 @@ class TestGenericContainerFileCopying:
         container = GenericContainer("test:latest", docker_client=mock_client)
         container.with_copy_file_to_container(temp_file, "/app/test.txt")
 
-        with patch('testcontainers.waiting.port.HostPortWaitStrategy.wait_until_ready'):
-            with patch.object(container, 'copy_file_to_container') as mock_copy:
-                container.start()
-                
-                # Should have called copy
-                mock_copy.assert_called_once_with(temp_file, "/app/test.txt")
+        mock_copy = Mock()
+        monkeypatch.setattr(container, 'copy_file_to_container', mock_copy)
+        monkeypatch.setattr('testcontainers.waiting.port.HostPortWaitStrategy.wait_until_ready', lambda self, container: None)
+        
+        container.start()
+        
+        # Should have called copy
+        mock_copy.assert_called_once_with(temp_file, "/app/test.txt")
 
     def test_copy_file_to_container_not_started(self, mock_client):
         """Test copy file to container fails when not started."""
@@ -351,10 +359,10 @@ class TestGenericContainerModifiers:
         assert result is container
         assert len(container._create_container_modifiers) == 1
 
-    @patch('testcontainers.images.remote_image.RemoteDockerImage.resolve')
-    def test_modifier_applied_on_create(self, mock_resolve, mock_client):
+    def test_modifier_applied_on_create(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test that modifiers are applied during container creation."""
-        mock_resolve.return_value = "test:latest"
+        monkeypatch.setattr('testcontainers.images.remote_image.RemoteDockerImage.resolve', lambda self: "test:latest")
+        
         mock_container = Mock()
         mock_container.id = "container123"
         mock_container.status = "running"
@@ -368,8 +376,8 @@ class TestGenericContainerModifiers:
         container = GenericContainer("test:latest", docker_client=mock_client)
         container.with_create_container_modifier(modifier)
 
-        with patch('testcontainers.waiting.port.HostPortWaitStrategy.wait_until_ready'):
-            container.start()
+        monkeypatch.setattr('testcontainers.waiting.port.HostPortWaitStrategy.wait_until_ready', lambda self, container: None)
+        container.start()
 
         # Check that modifier was applied
         create_kwargs = mock_client.containers.create.call_args[1]
@@ -421,10 +429,10 @@ class TestSocatContainer:
         assert socat._targets[6379] == "redis:6379"
         assert socat._targets[5432] == "postgres:5432"
 
-    @patch('testcontainers.images.remote_image.RemoteDockerImage.resolve')
-    def test_socat_start_builds_command(self, mock_resolve, mock_client):
+    def test_socat_start_builds_command(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test that socat start builds correct command."""
-        mock_resolve.return_value = SocatContainer.DEFAULT_IMAGE
+        monkeypatch.setattr('testcontainers.images.remote_image.RemoteDockerImage.resolve', lambda self: SocatContainer.DEFAULT_IMAGE)
+        
         mock_container = Mock()
         mock_container.id = "socat123"
         mock_container.status = "running"
@@ -435,8 +443,8 @@ class TestSocatContainer:
         socat._docker_client = mock_client
         socat.with_target(6379, "redis")
 
-        with patch('testcontainers.waiting.port.HostPortWaitStrategy.wait_until_ready'):
-            socat.start()
+        monkeypatch.setattr('testcontainers.waiting.port.HostPortWaitStrategy.wait_until_ready', lambda self, container: None)
+        socat.start()
 
         # Check command was built correctly
         assert socat._command is not None

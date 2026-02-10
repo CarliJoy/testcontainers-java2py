@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch
-
 import pytest
 from testcontainers.modules.qdrant import QdrantContainer
 from testcontainers.modules.weaviate import WeaviateContainer
@@ -48,12 +46,16 @@ class TestQdrantContainer:
 
         assert result is qdrant
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_qdrant_get_rest_url(self, mock_get_mapped_port, mock_get_host):
+    def test_qdrant_get_rest_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting REST API URL."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32768
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_host",
+            lambda self: "localhost"
+        )
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            lambda self, port: 32768
+        )
 
         qdrant = QdrantContainer()
         qdrant._container = True  # Mock container started
@@ -68,32 +70,40 @@ class TestQdrantContainer:
         with pytest.raises(RuntimeError, match="Container not started"):
             qdrant.get_rest_url()
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_qdrant_get_rest_port(self, mock_get_mapped_port):
+    def test_qdrant_get_rest_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting REST port."""
-        mock_get_mapped_port.return_value = 32768
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            lambda self, port: 32768
+        )
 
         qdrant = QdrantContainer()
         port = qdrant.get_rest_port()
 
         assert port == 32768
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_qdrant_get_grpc_port(self, mock_get_mapped_port):
+    def test_qdrant_get_grpc_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting gRPC port."""
-        mock_get_mapped_port.return_value = 32769
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            lambda self, port: 32769
+        )
 
         qdrant = QdrantContainer()
         port = qdrant.get_grpc_port()
 
         assert port == 32769
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_qdrant_get_grpc_host_address(self, mock_get_mapped_port, mock_get_host):
+    def test_qdrant_get_grpc_host_address(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting gRPC host address."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32769
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_host",
+            lambda self: "localhost"
+        )
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            lambda self, port: 32769
+        )
 
         qdrant = QdrantContainer()
         address = qdrant.get_grpc_host_address()
@@ -139,12 +149,16 @@ class TestWeaviateContainer:
         assert result is weaviate
         assert weaviate._env["TEST_KEY"] == "TEST_VALUE"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_weaviate_get_http_url(self, mock_get_mapped_port, mock_get_host):
+    def test_weaviate_get_http_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting HTTP URL."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32768
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_host",
+            lambda self: "localhost"
+        )
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            lambda self, port: 32768
+        )
 
         weaviate = WeaviateContainer()
         weaviate._container = True  # Mock container started
@@ -159,44 +173,56 @@ class TestWeaviateContainer:
         with pytest.raises(RuntimeError, match="Container not started"):
             weaviate.get_http_url()
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_weaviate_get_http_host_address(self, mock_get_mapped_port, mock_get_host):
+    def test_weaviate_get_http_host_address(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting HTTP host address."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32768
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_host",
+            lambda self: "localhost"
+        )
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            lambda self, port: 32768
+        )
 
         weaviate = WeaviateContainer()
         address = weaviate.get_http_host_address()
 
         assert address == "localhost:32768"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_weaviate_get_http_port(self, mock_get_mapped_port):
+    def test_weaviate_get_http_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting HTTP port."""
-        mock_get_mapped_port.return_value = 32768
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            lambda self, port: 32768
+        )
 
         weaviate = WeaviateContainer()
         port = weaviate.get_http_port()
 
         assert port == 32768
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_weaviate_get_grpc_port(self, mock_get_mapped_port):
+    def test_weaviate_get_grpc_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting gRPC port."""
-        mock_get_mapped_port.return_value = 32769
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            lambda self, port: 32769
+        )
 
         weaviate = WeaviateContainer()
         port = weaviate.get_grpc_port()
 
         assert port == 32769
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_weaviate_get_grpc_host_address(self, mock_get_mapped_port, mock_get_host):
+    def test_weaviate_get_grpc_host_address(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting gRPC host address."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32769
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_host",
+            lambda self: "localhost"
+        )
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            lambda self, port: 32769
+        )
 
         weaviate = WeaviateContainer()
         address = weaviate.get_grpc_host_address()
@@ -222,12 +248,16 @@ class TestMockServerContainer:
 
         assert mockserver._image.image_name == "mockserver/mockserver:5.15.0"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_mockserver_get_endpoint(self, mock_get_mapped_port, mock_get_host):
+    def test_mockserver_get_endpoint(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting HTTP endpoint."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32768
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_host",
+            lambda self: "localhost"
+        )
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            lambda self, port: 32768
+        )
 
         mockserver = MockServerContainer()
         mockserver._container = True  # Mock container started
@@ -242,12 +272,16 @@ class TestMockServerContainer:
         with pytest.raises(RuntimeError, match="Container not started"):
             mockserver.get_endpoint()
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_mockserver_get_secure_endpoint(self, mock_get_mapped_port, mock_get_host):
+    def test_mockserver_get_secure_endpoint(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting HTTPS endpoint."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32768
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_host",
+            lambda self: "localhost"
+        )
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            lambda self, port: 32768
+        )
 
         mockserver = MockServerContainer()
         mockserver._container = True  # Mock container started
@@ -262,22 +296,28 @@ class TestMockServerContainer:
         with pytest.raises(RuntimeError, match="Container not started"):
             mockserver.get_secure_endpoint()
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_mockserver_get_server_port(self, mock_get_mapped_port):
+    def test_mockserver_get_server_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting server port."""
-        mock_get_mapped_port.return_value = 32768
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            lambda self, port: 32768
+        )
 
         mockserver = MockServerContainer()
         port = mockserver.get_server_port()
 
         assert port == 32768
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_mockserver_get_url(self, mock_get_mapped_port, mock_get_host):
+    def test_mockserver_get_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting URL (alias for get_endpoint)."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32768
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_host",
+            lambda self: "localhost"
+        )
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            lambda self, port: 32768
+        )
 
         mockserver = MockServerContainer()
         mockserver._container = True  # Mock container started
@@ -307,22 +347,28 @@ class TestToxiproxyContainer:
 
         assert toxiproxy._image.image_name == "ghcr.io/shopify/toxiproxy:2.5.0"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_toxiproxy_get_control_port(self, mock_get_mapped_port):
+    def test_toxiproxy_get_control_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting control port."""
-        mock_get_mapped_port.return_value = 32768
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            lambda self, port: 32768
+        )
 
         toxiproxy = ToxiproxyContainer()
         port = toxiproxy.get_control_port()
 
         assert port == 32768
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_toxiproxy_get_control_url(self, mock_get_mapped_port, mock_get_host):
+    def test_toxiproxy_get_control_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting control URL."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32768
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_host",
+            lambda self: "localhost"
+        )
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            lambda self, port: 32768
+        )
 
         toxiproxy = ToxiproxyContainer()
         toxiproxy._container = True  # Mock container started
@@ -337,16 +383,24 @@ class TestToxiproxyContainer:
         with pytest.raises(RuntimeError, match="Container not started"):
             toxiproxy.get_control_url()
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_toxiproxy_get_proxy_port(self, mock_get_mapped_port):
+    def test_toxiproxy_get_proxy_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting proxy port."""
-        mock_get_mapped_port.return_value = 32769
+        call_tracker = {"called_with": None}
+        
+        def mock_get_mapped_port(self, port):
+            call_tracker["called_with"] = port
+            return 32769
+        
+        monkeypatch.setattr(
+            "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
+            mock_get_mapped_port
+        )
 
         toxiproxy = ToxiproxyContainer()
         port = toxiproxy.get_proxy_port(8666)
 
         assert port == 32769
-        mock_get_mapped_port.assert_called_with(8666)
+        assert call_tracker["called_with"] == 8666
 
     def test_toxiproxy_get_proxy_port_invalid_range(self):
         """Test getting proxy port with invalid port number."""

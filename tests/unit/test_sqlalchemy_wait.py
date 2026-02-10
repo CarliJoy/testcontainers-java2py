@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import builtins
 from datetime import timedelta
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock
 
 import pytest
 from testcontainers.waiting.sqlalchemy import SqlAlchemyWaitStrategy
@@ -59,17 +60,23 @@ class TestSqlAlchemyWaitStrategy:
         assert result is strategy
         assert strategy._startup_timeout == timedelta(seconds=30)
     
-    def test_wait_until_ready_no_sqlalchemy(self):
+    def test_wait_until_ready_no_sqlalchemy(self, monkeypatch: pytest.MonkeyPatch):
         """Test error when SqlAlchemy is not installed."""
         strategy = SqlAlchemyWaitStrategy()
         target = MockTarget()
         
-        with patch.dict("sys.modules", {"sqlalchemy": None}):
-            with patch("builtins.__import__", side_effect=ImportError("No module named 'sqlalchemy'")):
-                with pytest.raises(ImportError, match="SqlAlchemy is required"):
-                    strategy.wait_until_ready(target)
+        monkeypatch.setitem(__import__('sys').modules, "sqlalchemy", None)
+        original_import = builtins.__import__
+        def mock_import(name, *args, **kwargs):
+            if name == "sqlalchemy":
+                raise ImportError("No module named 'sqlalchemy'")
+            return original_import(name, *args, **kwargs)
+        monkeypatch.setattr("builtins.__import__", mock_import)
+        
+        with pytest.raises(ImportError, match="SqlAlchemy is required"):
+            strategy.wait_until_ready(target)
     
-    def test_wait_until_ready_no_target(self):
+    def test_wait_until_ready_no_target(self, monkeypatch: pytest.MonkeyPatch):
         """Test error when target is not set."""
         strategy = SqlAlchemyWaitStrategy()
         
@@ -77,11 +84,11 @@ class TestSqlAlchemyWaitStrategy:
         strategy._wait_strategy_target = None
         
         # Mock sys.modules to simulate sqlalchemy being available
-        with patch.dict("sys.modules", {"sqlalchemy": MagicMock()}):
-            with pytest.raises(RuntimeError, match="Wait strategy target not set"):
-                strategy._wait_until_ready()
+        monkeypatch.setitem(__import__('sys').modules, "sqlalchemy", MagicMock())
+        with pytest.raises(RuntimeError, match="Wait strategy target not set"):
+            strategy._wait_until_ready()
     
-    def test_wait_until_ready_success(self):
+    def test_wait_until_ready_success(self, monkeypatch: pytest.MonkeyPatch):
         """Test successful connection and query execution."""
         strategy = SqlAlchemyWaitStrategy()
         target = MockTarget()
@@ -98,8 +105,8 @@ class TestSqlAlchemyWaitStrategy:
         mock_engine.connect.return_value.__exit__ = Mock(return_value=False)
         mock_connection.execute.return_value = mock_result
         
-        with patch.dict("sys.modules", {"sqlalchemy": mock_sqlalchemy}):
-            strategy.wait_until_ready(target)
+        monkeypatch.setitem(__import__('sys').modules, "sqlalchemy", mock_sqlalchemy)
+        strategy.wait_until_ready(target)
         
         # Verify connection was attempted
         mock_sqlalchemy.create_engine.assert_called_once()
@@ -108,7 +115,7 @@ class TestSqlAlchemyWaitStrategy:
         mock_result.fetchone.assert_called_once()
         mock_engine.dispose.assert_called_once()
     
-    def test_wait_until_ready_timeout(self):
+    def test_wait_until_ready_timeout(self, monkeypatch: pytest.MonkeyPatch):
         """Test timeout when database never becomes ready."""
         strategy = SqlAlchemyWaitStrategy()
         strategy._startup_timeout = timedelta(milliseconds=100)
@@ -118,11 +125,11 @@ class TestSqlAlchemyWaitStrategy:
         mock_sqlalchemy = MagicMock()
         mock_sqlalchemy.create_engine.side_effect = Exception("Connection refused")
         
-        with patch.dict("sys.modules", {"sqlalchemy": mock_sqlalchemy}):
-            with pytest.raises(TimeoutError, match="Container is started but database connection failed"):
-                strategy.wait_until_ready(target)
+        monkeypatch.setitem(__import__('sys').modules, "sqlalchemy", mock_sqlalchemy)
+        with pytest.raises(TimeoutError, match="Container is started but database connection failed"):
+            strategy.wait_until_ready(target)
     
-    def test_wait_until_ready_container_not_running(self):
+    def test_wait_until_ready_container_not_running(self, monkeypatch: pytest.MonkeyPatch):
         """Test waiting for container to start running."""
         strategy = SqlAlchemyWaitStrategy()
         strategy._startup_timeout = timedelta(seconds=2)
@@ -156,13 +163,13 @@ class TestSqlAlchemyWaitStrategy:
         mock_engine.connect.return_value.__exit__ = Mock(return_value=False)
         mock_connection.execute.return_value = mock_result
         
-        with patch.dict("sys.modules", {"sqlalchemy": mock_sqlalchemy}):
-            strategy.wait_until_ready(target)
+        monkeypatch.setitem(__import__('sys').modules, "sqlalchemy", mock_sqlalchemy)
+        strategy.wait_until_ready(target)
         
         # Verify container eventually became running
         assert target._running is True
     
-    def test_wait_until_ready_custom_provider(self):
+    def test_wait_until_ready_custom_provider(self, monkeypatch: pytest.MonkeyPatch):
         """Test using custom connection URL provider."""
         strategy = SqlAlchemyWaitStrategy()
         custom_url = "mysql://custom:pass@localhost:3306/db"
@@ -182,14 +189,14 @@ class TestSqlAlchemyWaitStrategy:
         mock_engine.connect.return_value.__exit__ = Mock(return_value=False)
         mock_connection.execute.return_value = mock_result
         
-        with patch.dict("sys.modules", {"sqlalchemy": mock_sqlalchemy}):
-            strategy.wait_until_ready(target)
+        monkeypatch.setitem(__import__('sys').modules, "sqlalchemy", mock_sqlalchemy)
+        strategy.wait_until_ready(target)
         
         # Verify custom URL was used
         call_args = mock_sqlalchemy.create_engine.call_args
         assert call_args[0][0] == custom_url
     
-    def test_wait_until_ready_no_connection_string_method(self):
+    def test_wait_until_ready_no_connection_string_method(self, monkeypatch: pytest.MonkeyPatch):
         """Test error when target doesn't have get_connection_string method."""
         strategy = SqlAlchemyWaitStrategy()
         
@@ -199,7 +206,7 @@ class TestSqlAlchemyWaitStrategy:
         })()
         
         mock_sqlalchemy = MagicMock()
-        with patch.dict("sys.modules", {"sqlalchemy": mock_sqlalchemy}):
-            strategy._wait_strategy_target = target
-            with pytest.raises(RuntimeError, match="Target must have get_connection_string"):
-                strategy._wait_until_ready()
+        monkeypatch.setitem(__import__('sys').modules, "sqlalchemy", mock_sqlalchemy)
+        strategy._wait_strategy_target = target
+        with pytest.raises(RuntimeError, match="Target must have get_connection_string"):
+            strategy._wait_until_ready()

@@ -206,7 +206,7 @@ class TestGlobalSubstitutor:
         sub = get_image_name_substitutor()
         assert sub.substitute("postgres:13") == "postgres:13"  # Back to NoOp
 
-    def test_loads_from_env_variable(self, reset_config, monkeypatch):
+    def test_loads_from_env_variable(self, reset_config, monkeypatch: pytest.MonkeyPatch):
         """Should load prefix from environment variable."""
         monkeypatch.setenv("TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX", "registry.corp.com")
         TestcontainersConfig.reset()
@@ -230,7 +230,7 @@ image_name_prefix = "registry.corp.com/mirror"
         sub = get_image_name_substitutor()
         assert sub.substitute("postgres:13") == "registry.corp.com/mirror/postgres:13"
 
-    def test_programmatic_overrides_config(self, reset_config, monkeypatch):
+    def test_programmatic_overrides_config(self, reset_config, monkeypatch: pytest.MonkeyPatch):
         """Programmatic setting should override configuration."""
         monkeypatch.setenv("TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX", "registry.env.com")
         TestcontainersConfig.reset()

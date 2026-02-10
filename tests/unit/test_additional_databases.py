@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from testcontainers.modules.cassandra import CassandraContainer
 from testcontainers.modules.couchdb import CouchDBContainer
@@ -84,14 +84,14 @@ class TestMariaDBContainer:
 
         assert mariadb.get_driver_class_name() == "org.mariadb.jdbc.Driver"
 
-    def test_mariadb_get_jdbc_url(self):
+    def test_mariadb_get_jdbc_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test MariaDB JDBC URL generation."""
         mariadb = MariaDBContainer()
         mariadb._container = MagicMock()
 
-        with patch.object(mariadb, 'get_host', return_value='localhost'):
-            with patch.object(mariadb, 'get_mapped_port', return_value=3306):
-                url = mariadb.get_jdbc_url()
+        monkeypatch.setattr(mariadb, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(mariadb, 'get_mapped_port', lambda port: 3306)
+        url = mariadb.get_jdbc_url()
 
         assert url == "jdbc:mariadb://localhost:3306/test"
 
@@ -154,14 +154,14 @@ class TestCassandraContainer:
         assert cassandra._env["CASSANDRA_DC"] == "dc1"
         assert cassandra._env["CASSANDRA_CLUSTER_NAME"] == "my-cluster"
 
-    def test_cassandra_get_contact_points(self):
+    def test_cassandra_get_contact_points(self, monkeypatch: pytest.MonkeyPatch):
         """Test Cassandra contact points generation."""
         cassandra = CassandraContainer()
         cassandra._container = MagicMock()
 
-        with patch.object(cassandra, 'get_host', return_value='localhost'):
-            with patch.object(cassandra, 'get_mapped_port', return_value=9042):
-                contact_points = cassandra.get_contact_points()
+        monkeypatch.setattr(cassandra, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(cassandra, 'get_mapped_port', lambda port: 9042)
+        contact_points = cassandra.get_contact_points()
 
         assert contact_points == "localhost:9042"
 
@@ -244,25 +244,25 @@ class TestNeo4jContainer:
 
         assert neo4j._env["NEO4J_AUTH"] == "none"
 
-    def test_neo4j_get_bolt_url(self):
+    def test_neo4j_get_bolt_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test Neo4j Bolt URL generation."""
         neo4j = Neo4jContainer()
         neo4j._container = MagicMock()
 
-        with patch.object(neo4j, 'get_host', return_value='localhost'):
-            with patch.object(neo4j, 'get_mapped_port', return_value=7687):
-                url = neo4j.get_bolt_url()
+        monkeypatch.setattr(neo4j, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(neo4j, 'get_mapped_port', lambda port: 7687)
+        url = neo4j.get_bolt_url()
 
         assert url == "bolt://localhost:7687"
 
-    def test_neo4j_get_http_url(self):
+    def test_neo4j_get_http_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test Neo4j HTTP URL generation."""
         neo4j = Neo4jContainer()
         neo4j._container = MagicMock()
 
-        with patch.object(neo4j, 'get_host', return_value='localhost'):
-            with patch.object(neo4j, 'get_mapped_port', return_value=7474):
-                url = neo4j.get_http_url()
+        monkeypatch.setattr(neo4j, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(neo4j, 'get_mapped_port', lambda port: 7474)
+        url = neo4j.get_http_url()
 
         assert url == "http://localhost:7474"
 
@@ -356,14 +356,14 @@ class TestInfluxDBContainer:
         assert influxdb._env["DOCKER_INFLUXDB_INIT_BUCKET"] == "testbucket"
         assert influxdb._env["DOCKER_INFLUXDB_INIT_ADMIN_TOKEN"] == "testtoken"
 
-    def test_influxdb_get_url(self):
+    def test_influxdb_get_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test InfluxDB URL generation."""
         influxdb = InfluxDBContainer()
         influxdb._container = MagicMock()
 
-        with patch.object(influxdb, 'get_host', return_value='localhost'):
-            with patch.object(influxdb, 'get_mapped_port', return_value=8086):
-                url = influxdb.get_url()
+        monkeypatch.setattr(influxdb, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(influxdb, 'get_mapped_port', lambda port: 8086)
+        url = influxdb.get_url()
 
         assert url == "http://localhost:8086"
 
@@ -447,26 +447,26 @@ class TestCouchDBContainer:
         assert couchdb._env["COUCHDB_USER"] == "testuser"
         assert couchdb._env["COUCHDB_PASSWORD"] == "testpass"
 
-    def test_couchdb_get_url(self):
+    def test_couchdb_get_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test CouchDB URL generation."""
         couchdb = CouchDBContainer()
         couchdb._container = MagicMock()
 
-        with patch.object(couchdb, 'get_host', return_value='localhost'):
-            with patch.object(couchdb, 'get_mapped_port', return_value=5984):
-                url = couchdb.get_url()
+        monkeypatch.setattr(couchdb, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(couchdb, 'get_mapped_port', lambda port: 5984)
+        url = couchdb.get_url()
 
         assert url == "http://admin:password@localhost:5984"
 
-    def test_couchdb_get_url_custom_credentials(self):
+    def test_couchdb_get_url_custom_credentials(self, monkeypatch: pytest.MonkeyPatch):
         """Test CouchDB URL generation with custom credentials."""
         couchdb = CouchDBContainer()
         couchdb.with_authentication("myuser", "mypass")
         couchdb._container = MagicMock()
 
-        with patch.object(couchdb, 'get_host', return_value='localhost'):
-            with patch.object(couchdb, 'get_mapped_port', return_value=5984):
-                url = couchdb.get_url()
+        monkeypatch.setattr(couchdb, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(couchdb, 'get_mapped_port', lambda port: 5984)
+        url = couchdb.get_url()
 
         assert url == "http://myuser:mypass@localhost:5984"
 
