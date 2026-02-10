@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import builtins
 from datetime import timedelta
 from unittest.mock import MagicMock, Mock
 
@@ -65,7 +66,6 @@ class TestSqlAlchemyWaitStrategy:
         target = MockTarget()
         
         monkeypatch.setitem(__import__('sys').modules, "sqlalchemy", None)
-        import builtins
         original_import = builtins.__import__
         def mock_import(name, *args, **kwargs):
             if name == "sqlalchemy":
