@@ -12,10 +12,10 @@ The testcontainers-java to Python conversion project has achieved **100% Java fe
 
 | Metric | Status |
 |--------|--------|
-| **Java Feature Parity** | ✅ 100% (48/48 features) |
+| **Java Feature Parity** | ✅ 100% (49/49 features) |
 | **Specialized Modules** | 34 of 63 (54%) |
 | **Lines of Code** | ~14,500 |
-| **Test Coverage** | 510+ tests (100% pass rate) |
+| **Test Coverage** | 520+ tests (100% pass rate) |
 | **Type Hints** | ✅ Complete (PEP 484) |
 | **Security** | ✅ Zero vulnerabilities |
 | **Documentation** | ✅ Comprehensive |
@@ -39,7 +39,7 @@ The testcontainers-java to Python conversion project has achieved **100% Java fe
 
 ## Feature Parity Status
 
-### All 48 Features Implemented ✅
+### All 49 Features Implemented ✅
 
 **Phase 1: Core Infrastructure (Complete)**
 - ✅ Resource Management (CPU, memory, swap, shm)
@@ -62,6 +62,7 @@ The testcontainers-java to Python conversion project has achieved **100% Java fe
 - ✅ DockerHealthcheckWaitStrategy
 - ✅ ShellStrategy
 - ✅ WaitAllStrategy (composite)
+- ✅ **SqlAlchemyWaitStrategy** (database connection testing) ✨
 
 **Phase 3: Container Features (Complete)**
 - ✅ File Copying (to/from container)
@@ -185,6 +186,20 @@ with PostgreSQLContainer("postgres:13") as postgres:
     conn_url = postgres.get_connection_url()
 ```
 
+**Example - PostgreSQL with SqlAlchemy Wait Strategy:**
+```python
+from testcontainers.modules.postgres import PostgreSQLContainer
+
+with PostgreSQLContainer("postgres:13") as postgres:
+    # Use SqlAlchemy to verify database is ready (matches Java behavior)
+    postgres.with_sqlalchemy_wait_strategy(timeout_seconds=60)
+    postgres.with_init_script("init.sql")
+    
+    # Database is guaranteed ready to accept queries
+    conn_url = postgres.get_connection_string()
+    # postgresql://test:test@localhost:32768/test
+```
+
 **Example - MySQL:**
 ```python
 from testcontainers.modules.mysql import MySQLContainer
@@ -287,7 +302,7 @@ These modules are available in the Java source and can be added incrementally:
 
 ## Wait Strategies
 
-### All 7 Wait Strategies Implemented
+### All 8 Wait Strategies Implemented ✅
 
 **1. ExecWaitStrategy (NEW)**
 ```python
@@ -352,18 +367,75 @@ container.with_wait_strategy(
 )
 ```
 
+**8. SqlAlchemyWaitStrategy (NEW)** ✨
+```python
+from testcontainers.waiting import SqlAlchemyWaitStrategy
+from testcontainers.modules.postgres import PostgreSQLContainer
+
+# Test database connectivity using SqlAlchemy
+postgres = PostgreSQLContainer()
+postgres.with_sqlalchemy_wait_strategy(timeout_seconds=60)
+
+# Or manually configure the strategy
+container.with_wait_strategy(
+    SqlAlchemyWaitStrategy()
+    .with_query("SELECT 1")
+    .with_startup_timeout(timedelta(seconds=120))
+)
+```
+
+**SqlAlchemy Wait Strategy Details:**
+
+This strategy mimics Java's `JdbcDatabaseContainer.waitUntilContainerStarted()` method by actively testing database connectivity instead of relying on log messages. It provides a more reliable way to determine when a database is ready to accept queries.
+
+**Key Features:**
+- Actively connects to the database using SqlAlchemy
+- Executes test queries to verify readiness
+- Retries with exponential backoff (100ms between attempts)
+- Supports custom connection URLs and queries
+- Works with all database containers that have `get_connection_string()` method
+
+**Installation:**
+```bash
+pip install testcontainers-python[database]
+# or
+pip install sqlalchemy
+```
+
+**Example with PostgreSQL:**
+```python
+from testcontainers.modules.postgres import PostgreSQLContainer
+
+with PostgreSQLContainer() as postgres:
+    # Using SqlAlchemy wait strategy (recommended)
+    postgres.with_sqlalchemy_wait_strategy(timeout_seconds=60)
+    
+    # Database is guaranteed to be ready
+    connection_url = postgres.get_connection_string()
+    # postgresql://test:test@localhost:32768/test
+```
+
+**Comparison with LogMessageWaitStrategy:**
+- **LogMessageWaitStrategy**: Waits for specific log patterns (e.g., "ready for connections")
+  - Fast but may not guarantee database is truly ready
+  - Default for most database containers
+- **SqlAlchemyWaitStrategy**: Actively tests database connection
+  - More reliable - ensures database accepts queries
+  - Slightly slower but provides stronger guarantees
+  - Matches Java testcontainers behavior
+
 ---
 
 ## Testing & Quality
 
 ### Test Coverage
 
-- **Total Tests:** 510+
+- **Total Tests:** 520+
 - **Pass Rate:** 100%
 - **Coverage:** Comprehensive
 
 **Test Categories:**
-- Unit Tests: 220+
+- Unit Tests: 230+
 - Integration Tests: 150+
 - Module Tests: 140+
 
