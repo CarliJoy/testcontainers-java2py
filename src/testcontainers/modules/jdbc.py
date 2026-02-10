@@ -11,7 +11,6 @@ https://github.com/testcontainers/testcontainers-java/blob/main/modules/database
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Dict
 
 from testcontainers.core.generic_container import GenericContainer
 
@@ -60,7 +59,7 @@ class JdbcDatabaseContainer(GenericContainer):
         self._username = username
         self._password = password
         self._dbname = dbname
-        self._url_parameters: Dict[str, str] = {}
+        self._url_parameters: dict[str, str] = {}
         self._init_scripts: list[str] = []
 
         # Expose the database port

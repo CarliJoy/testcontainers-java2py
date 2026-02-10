@@ -6,6 +6,7 @@ https://github.com/testcontainers/testcontainers-java/blob/main/modules/mariadb/
 """
 
 from __future__ import annotations
+
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
 from testcontainers.waiting.log import LogMessageWaitStrategy
 
@@ -49,7 +50,7 @@ class MariaDBContainer(JdbcDatabaseContainer):
         self.with_env("MYSQL_DATABASE", self._dbname)
 
         # Handle non-root users (Java logic from lines 68-72)
-        # Note: Username comparison is case-sensitive (MySQL/MariaDB are case-sensitive for usernames)
+        # Note: Username comparison is case-sensitive for MySQL/MariaDB
         is_root_user = self._username == self.MYSQL_ROOT_USER
         if not is_root_user:
             self.with_env("MYSQL_USER", self._username)
@@ -103,7 +104,7 @@ class MariaDBContainer(JdbcDatabaseContainer):
         """Get the test query string for MariaDB."""
         return "SELECT 1"
 
-    def with_config_override(self, config_path: str) -> "MariaDBContainer":
+    def with_config_override(self, config_path: str) -> MariaDBContainer:
         """
         Map a custom MariaDB configuration file into the container.
 

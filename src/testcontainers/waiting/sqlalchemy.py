@@ -11,8 +11,7 @@ https://github.com/testcontainers/testcontainers-java/blob/main/modules/database
 from __future__ import annotations
 
 import time
-from datetime import timedelta
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING, Callable
 
 from testcontainers.waiting.wait_strategy import AbstractWaitStrategy
 
@@ -45,7 +44,7 @@ class SqlAlchemyWaitStrategy(AbstractWaitStrategy):
         """Initialize the SqlAlchemy wait strategy."""
         super().__init__()
         self._test_query: str = "SELECT 1"
-        self._connection_url_provider: Optional[Callable[[WaitStrategyTarget], str]] = None
+        self._connection_url_provider: Callable[[WaitStrategyTarget], str] | None = None
         self._sleep_time: float = 0.1  # 100ms between retries, matching Java
 
     def with_query(self, query: str) -> SqlAlchemyWaitStrategy:
@@ -110,12 +109,13 @@ class SqlAlchemyWaitStrategy(AbstractWaitStrategy):
             connection_url = self._wait_strategy_target.get_connection_string()  # type: ignore
         else:
             raise RuntimeError(
-                "Target must have get_connection_string() method or use with_connection_url_provider()"
+                "Target must have get_connection_string() method or use "
+                "with_connection_url_provider()"
             )
 
         start_time = time.time()
         timeout_seconds = self._startup_timeout.total_seconds()
-        last_exception: Optional[Exception] = None
+        last_exception: Exception | None = None
 
         while (time.time() - start_time) < timeout_seconds:
             # Wait for container to be running first
