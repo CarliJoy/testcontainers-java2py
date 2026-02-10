@@ -24,7 +24,7 @@ class TestNetwork:
         client.networks = Mock()
         return client
 
-    def test_network_creation(self, mock_client, monkeypatch):
+    def test_network_creation(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test network creation."""
         mock_network = Mock()
         mock_network.id = "net123"
@@ -45,7 +45,7 @@ class TestNetwork:
         assert call_kwargs["name"] == "test-network"
         assert call_kwargs["check_duplicate"] is True
 
-    def test_network_with_driver(self, mock_client, monkeypatch):
+    def test_network_with_driver(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test network with custom driver."""
         mock_network = Mock()
         mock_network.id = "net456"
@@ -63,7 +63,7 @@ class TestNetwork:
         call_kwargs = mock_client.networks.create.call_args[1]
         assert call_kwargs["driver"] == "overlay"
 
-    def test_network_with_ipv6(self, mock_client, monkeypatch):
+    def test_network_with_ipv6(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test network with IPv6 enabled."""
         mock_network = Mock()
         mock_network.id = "net789"
@@ -81,7 +81,7 @@ class TestNetwork:
         call_kwargs = mock_client.networks.create.call_args[1]
         assert call_kwargs["enable_ipv6"] is True
 
-    def test_network_lazy_initialization(self, mock_client, monkeypatch):
+    def test_network_lazy_initialization(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test network lazy initialization."""
         mock_network = Mock()
         mock_network.id = "netlazy"
@@ -109,7 +109,7 @@ class TestNetwork:
         assert net_id2 == "netlazy"
         assert not mock_client.networks.create.called
 
-    def test_network_close(self, mock_client, monkeypatch):
+    def test_network_close(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test network cleanup."""
         mock_network = Mock()
         mock_network.id = "netclose"
@@ -127,7 +127,7 @@ class TestNetwork:
         network.close()
         assert mock_network.remove.called
 
-    def test_network_context_manager(self, mock_client, monkeypatch):
+    def test_network_context_manager(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test network as context manager."""
         mock_network = Mock()
         mock_network.id = "netctx"
@@ -198,7 +198,7 @@ class TestGenericContainerNetworking:
         assert result is container
         assert container._network_aliases == ["alias1", "alias2"]
 
-    def test_start_with_network(self, mock_client, mock_network, monkeypatch):
+    def test_start_with_network(self, mock_client, mock_network, monkeypatch: pytest.MonkeyPatch):
         """Test starting container with network."""
         monkeypatch.setattr('testcontainers.images.remote_image.RemoteDockerImage.resolve', lambda self: "test:latest")
         
@@ -245,7 +245,7 @@ class TestGenericContainerDependencies:
         assert container1 in container3._dependencies
         assert container2 in container3._dependencies
 
-    def test_start_starts_dependencies(self, mock_client, monkeypatch):
+    def test_start_starts_dependencies(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test that starting container starts its dependencies."""
         monkeypatch.setattr('testcontainers.images.remote_image.RemoteDockerImage.resolve', lambda self: "test:latest")
         
@@ -300,7 +300,7 @@ class TestGenericContainerFileCopying:
         assert "/host/file" in container._copy_to_container
         assert container._copy_to_container["/host/file"] == "/container/file"
 
-    def test_copy_files_on_start(self, mock_client, temp_file, monkeypatch):
+    def test_copy_files_on_start(self, mock_client, temp_file, monkeypatch: pytest.MonkeyPatch):
         """Test that files are copied when container starts."""
         monkeypatch.setattr('testcontainers.images.remote_image.RemoteDockerImage.resolve', lambda self: "test:latest")
         
@@ -359,7 +359,7 @@ class TestGenericContainerModifiers:
         assert result is container
         assert len(container._create_container_modifiers) == 1
 
-    def test_modifier_applied_on_create(self, mock_client, monkeypatch):
+    def test_modifier_applied_on_create(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test that modifiers are applied during container creation."""
         monkeypatch.setattr('testcontainers.images.remote_image.RemoteDockerImage.resolve', lambda self: "test:latest")
         
@@ -429,7 +429,7 @@ class TestSocatContainer:
         assert socat._targets[6379] == "redis:6379"
         assert socat._targets[5432] == "postgres:5432"
 
-    def test_socat_start_builds_command(self, mock_client, monkeypatch):
+    def test_socat_start_builds_command(self, mock_client, monkeypatch: pytest.MonkeyPatch):
         """Test that socat start builds correct command."""
         monkeypatch.setattr('testcontainers.images.remote_image.RemoteDockerImage.resolve', lambda self: SocatContainer.DEFAULT_IMAGE)
         

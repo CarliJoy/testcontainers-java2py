@@ -84,7 +84,7 @@ class TestMariaDBContainer:
 
         assert mariadb.get_driver_class_name() == "org.mariadb.jdbc.Driver"
 
-    def test_mariadb_get_jdbc_url(self, monkeypatch):
+    def test_mariadb_get_jdbc_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test MariaDB JDBC URL generation."""
         mariadb = MariaDBContainer()
         mariadb._container = MagicMock()
@@ -154,7 +154,7 @@ class TestCassandraContainer:
         assert cassandra._env["CASSANDRA_DC"] == "dc1"
         assert cassandra._env["CASSANDRA_CLUSTER_NAME"] == "my-cluster"
 
-    def test_cassandra_get_contact_points(self, monkeypatch):
+    def test_cassandra_get_contact_points(self, monkeypatch: pytest.MonkeyPatch):
         """Test Cassandra contact points generation."""
         cassandra = CassandraContainer()
         cassandra._container = MagicMock()
@@ -244,7 +244,7 @@ class TestNeo4jContainer:
 
         assert neo4j._env["NEO4J_AUTH"] == "none"
 
-    def test_neo4j_get_bolt_url(self, monkeypatch):
+    def test_neo4j_get_bolt_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test Neo4j Bolt URL generation."""
         neo4j = Neo4jContainer()
         neo4j._container = MagicMock()
@@ -255,7 +255,7 @@ class TestNeo4jContainer:
 
         assert url == "bolt://localhost:7687"
 
-    def test_neo4j_get_http_url(self, monkeypatch):
+    def test_neo4j_get_http_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test Neo4j HTTP URL generation."""
         neo4j = Neo4jContainer()
         neo4j._container = MagicMock()
@@ -356,7 +356,7 @@ class TestInfluxDBContainer:
         assert influxdb._env["DOCKER_INFLUXDB_INIT_BUCKET"] == "testbucket"
         assert influxdb._env["DOCKER_INFLUXDB_INIT_ADMIN_TOKEN"] == "testtoken"
 
-    def test_influxdb_get_url(self, monkeypatch):
+    def test_influxdb_get_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test InfluxDB URL generation."""
         influxdb = InfluxDBContainer()
         influxdb._container = MagicMock()
@@ -447,7 +447,7 @@ class TestCouchDBContainer:
         assert couchdb._env["COUCHDB_USER"] == "testuser"
         assert couchdb._env["COUCHDB_PASSWORD"] == "testpass"
 
-    def test_couchdb_get_url(self, monkeypatch):
+    def test_couchdb_get_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test CouchDB URL generation."""
         couchdb = CouchDBContainer()
         couchdb._container = MagicMock()
@@ -458,7 +458,7 @@ class TestCouchDBContainer:
 
         assert url == "http://admin:password@localhost:5984"
 
-    def test_couchdb_get_url_custom_credentials(self, monkeypatch):
+    def test_couchdb_get_url_custom_credentials(self, monkeypatch: pytest.MonkeyPatch):
         """Test CouchDB URL generation with custom credentials."""
         couchdb = CouchDBContainer()
         couchdb.with_authentication("myuser", "mypass")

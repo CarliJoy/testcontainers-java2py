@@ -49,7 +49,7 @@ class TestConsulContainer:
         assert "kv put config/test1 value1" in consul._init_commands
         assert "kv put config/test2 value2" in consul._init_commands
 
-    def test_consul_get_http_port(self, monkeypatch):
+    def test_consul_get_http_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting HTTP port."""
         call_tracker = {"called_with": None}
         
@@ -65,7 +65,7 @@ class TestConsulContainer:
         assert port == 32768
         assert call_tracker["called_with"] == 8500
 
-    def test_consul_get_grpc_port(self, monkeypatch):
+    def test_consul_get_grpc_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting gRPC port."""
         call_tracker = {"called_with": None}
         
@@ -113,7 +113,7 @@ class TestLLdapContainer:
         assert result is ldap
         assert ldap._env["LLDAP_LDAP_USER_PASS"] == "secret123"
 
-    def test_lldap_get_ldap_url_without_tls(self, monkeypatch):
+    def test_lldap_get_ldap_url_without_tls(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting LDAP URL without TLS."""
         mock_get_host = MagicMock(return_value="localhost")
         mock_get_mapped_port = MagicMock(return_value=32770)
@@ -125,7 +125,7 @@ class TestLLdapContainer:
 
         assert url == "ldap://localhost:32770"
 
-    def test_lldap_get_ldap_url_with_tls(self, monkeypatch):
+    def test_lldap_get_ldap_url_with_tls(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting LDAP URL with TLS."""
         mock_get_host = MagicMock(return_value="localhost")
         mock_get_mapped_port = MagicMock(return_value=32771)
@@ -199,7 +199,7 @@ class TestLgtmStackContainer:
         assert 4318 in lgtm._exposed_ports
         assert 9090 in lgtm._exposed_ports
 
-    def test_lgtm_get_grafana_http_url(self, monkeypatch):
+    def test_lgtm_get_grafana_http_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting Grafana HTTP URL."""
         mock_get_host = MagicMock(return_value="localhost")
         mock_get_mapped_port = MagicMock(return_value=32772)
@@ -211,7 +211,7 @@ class TestLgtmStackContainer:
 
         assert url == "http://localhost:32772"
 
-    def test_lgtm_get_otlp_grpc_url(self, monkeypatch):
+    def test_lgtm_get_otlp_grpc_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting OTLP gRPC URL."""
         mock_get_host = MagicMock(return_value="localhost")
         mock_get_mapped_port = MagicMock(return_value=32773)
@@ -223,7 +223,7 @@ class TestLgtmStackContainer:
 
         assert url == "http://localhost:32773"
 
-    def test_lgtm_get_otlp_http_url(self, monkeypatch):
+    def test_lgtm_get_otlp_http_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting OTLP HTTP URL."""
         mock_get_host = MagicMock(return_value="localhost")
         mock_get_mapped_port = MagicMock(return_value=32774)
@@ -235,7 +235,7 @@ class TestLgtmStackContainer:
 
         assert url == "http://localhost:32774"
 
-    def test_lgtm_get_tempo_url(self, monkeypatch):
+    def test_lgtm_get_tempo_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting Tempo URL."""
         mock_get_host = MagicMock(return_value="localhost")
         mock_get_mapped_port = MagicMock(return_value=32775)
@@ -247,7 +247,7 @@ class TestLgtmStackContainer:
 
         assert url == "http://localhost:32775"
 
-    def test_lgtm_get_loki_url(self, monkeypatch):
+    def test_lgtm_get_loki_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting Loki URL."""
         mock_get_host = MagicMock(return_value="localhost")
         mock_get_mapped_port = MagicMock(return_value=32776)
@@ -259,7 +259,7 @@ class TestLgtmStackContainer:
 
         assert url == "http://localhost:32776"
 
-    def test_lgtm_get_prometheus_http_url(self, monkeypatch):
+    def test_lgtm_get_prometheus_http_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting Prometheus HTTP URL."""
         mock_get_host = MagicMock(return_value="localhost")
         mock_get_mapped_port = MagicMock(return_value=32777)
@@ -311,7 +311,7 @@ class TestAzuriteContainer:
         assert azurite._key_file == "/path/to/key.pem"
         assert azurite._cert_extension == ".pem"
 
-    def test_azurite_get_connection_string_default(self, monkeypatch):
+    def test_azurite_get_connection_string_default(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting connection string with default credentials."""
         mock_get_host = MagicMock(return_value="localhost")
         mock_get_mapped_port = MagicMock(side_effect=lambda port: {
@@ -330,7 +330,7 @@ class TestAzuriteContainer:
         assert "http://localhost:32779" in conn_str
         assert "http://localhost:32780" in conn_str
 
-    def test_azurite_get_connection_string_custom_credentials(self, monkeypatch):
+    def test_azurite_get_connection_string_custom_credentials(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting connection string with custom credentials."""
         mock_get_host = MagicMock(return_value="localhost")
         mock_get_mapped_port = MagicMock(side_effect=lambda port: {
@@ -347,7 +347,7 @@ class TestAzuriteContainer:
         assert "myaccount" in conn_str
         assert "mykey" in conn_str
 
-    def test_azurite_get_connection_string_with_ssl(self, monkeypatch):
+    def test_azurite_get_connection_string_with_ssl(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting connection string with SSL enabled."""
         mock_get_host = MagicMock(return_value="localhost")
         mock_get_mapped_port = MagicMock(side_effect=lambda port: {

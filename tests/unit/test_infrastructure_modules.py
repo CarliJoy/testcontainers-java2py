@@ -48,7 +48,7 @@ class TestNGINXContainer:
         
         assert 80 in nginx._exposed_ports
 
-    def test_nginx_get_base_url_with_mock(self, monkeypatch):
+    def test_nginx_get_base_url_with_mock(self, monkeypatch: pytest.MonkeyPatch):
         """Test that get_base_url generates correct URL with mocked container."""
         nginx = NGINXContainer()
         nginx._container = MagicMock()
@@ -114,7 +114,7 @@ class TestLocalStackContainer:
         assert result is localstack
         assert localstack._enabled_services == []
 
-    def test_localstack_get_url_with_mock(self, monkeypatch):
+    def test_localstack_get_url_with_mock(self, monkeypatch: pytest.MonkeyPatch):
         """Test that get_url generates correct URL with mocked container."""
         localstack = LocalStackContainer()
         localstack._container = MagicMock()

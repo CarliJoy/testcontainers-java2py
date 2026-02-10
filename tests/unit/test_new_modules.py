@@ -78,7 +78,7 @@ class TestClickHouseContainer:
         clickhouse = ClickHouseContainer()
         assert clickhouse.get_driver_class_name() == "com.clickhouse.jdbc.Driver"
 
-    def test_clickhouse_get_jdbc_url(self, monkeypatch):
+    def test_clickhouse_get_jdbc_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting JDBC URL."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -94,7 +94,7 @@ class TestClickHouseContainer:
 
         assert url == "jdbc:clickhouse://localhost:32768/testdb"
 
-    def test_clickhouse_get_http_url(self, monkeypatch):
+    def test_clickhouse_get_http_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting HTTP URL."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -110,7 +110,7 @@ class TestClickHouseContainer:
 
         assert url == "http://localhost:32768"
 
-    def test_clickhouse_get_connection_string(self, monkeypatch):
+    def test_clickhouse_get_connection_string(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting connection string."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -239,7 +239,7 @@ class TestCockroachDBContainer:
         cockroach = CockroachDBContainer()
         assert cockroach.get_driver_class_name() == "org.postgresql.Driver"
 
-    def test_cockroachdb_get_jdbc_url(self, monkeypatch):
+    def test_cockroachdb_get_jdbc_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting JDBC URL."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -255,7 +255,7 @@ class TestCockroachDBContainer:
 
         assert url == "jdbc:postgresql://localhost:32770/testdb"
 
-    def test_cockroachdb_get_connection_string_with_password(self, monkeypatch):
+    def test_cockroachdb_get_connection_string_with_password(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting connection string with password."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -273,7 +273,7 @@ class TestCockroachDBContainer:
 
         assert conn_str == "postgresql://root:mypass@localhost:32770/testdb"
 
-    def test_cockroachdb_get_connection_string_without_password(self, monkeypatch):
+    def test_cockroachdb_get_connection_string_without_password(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting connection string without password."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -355,7 +355,7 @@ class TestBrowserWebDriverContainer:
         with pytest.raises(ValueError, match="Unsupported browser type"):
             BrowserWebDriverContainer(browser="invalid")  # type: ignore
 
-    def test_selenium_get_selenium_url(self, monkeypatch):
+    def test_selenium_get_selenium_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting Selenium WebDriver URL."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -379,7 +379,7 @@ class TestBrowserWebDriverContainer:
         with pytest.raises(RuntimeError, match="Container not started"):
             selenium.get_selenium_url()
 
-    def test_selenium_get_selenium_address(self, monkeypatch):
+    def test_selenium_get_selenium_address(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting Selenium address (alias for get_selenium_url)."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -396,7 +396,7 @@ class TestBrowserWebDriverContainer:
 
         assert url == "http://localhost:32772/wd/hub"
 
-    def test_selenium_get_vnc_address(self, monkeypatch):
+    def test_selenium_get_vnc_address(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting VNC address."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -420,7 +420,7 @@ class TestBrowserWebDriverContainer:
         with pytest.raises(RuntimeError, match="Container not started"):
             selenium.get_vnc_address()
 
-    def test_selenium_get_selenium_port(self, monkeypatch):
+    def test_selenium_get_selenium_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting Selenium port."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
@@ -432,7 +432,7 @@ class TestBrowserWebDriverContainer:
 
         assert port == 32772
 
-    def test_selenium_get_vnc_port(self, monkeypatch):
+    def test_selenium_get_vnc_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting VNC port."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_mapped_port",

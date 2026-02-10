@@ -46,7 +46,7 @@ class TestQdrantContainer:
 
         assert result is qdrant
 
-    def test_qdrant_get_rest_url(self, monkeypatch):
+    def test_qdrant_get_rest_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting REST API URL."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -70,7 +70,7 @@ class TestQdrantContainer:
         with pytest.raises(RuntimeError, match="Container not started"):
             qdrant.get_rest_url()
 
-    def test_qdrant_get_rest_port(self, monkeypatch):
+    def test_qdrant_get_rest_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting REST port."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
@@ -82,7 +82,7 @@ class TestQdrantContainer:
 
         assert port == 32768
 
-    def test_qdrant_get_grpc_port(self, monkeypatch):
+    def test_qdrant_get_grpc_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting gRPC port."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
@@ -94,7 +94,7 @@ class TestQdrantContainer:
 
         assert port == 32769
 
-    def test_qdrant_get_grpc_host_address(self, monkeypatch):
+    def test_qdrant_get_grpc_host_address(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting gRPC host address."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -149,7 +149,7 @@ class TestWeaviateContainer:
         assert result is weaviate
         assert weaviate._env["TEST_KEY"] == "TEST_VALUE"
 
-    def test_weaviate_get_http_url(self, monkeypatch):
+    def test_weaviate_get_http_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting HTTP URL."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -173,7 +173,7 @@ class TestWeaviateContainer:
         with pytest.raises(RuntimeError, match="Container not started"):
             weaviate.get_http_url()
 
-    def test_weaviate_get_http_host_address(self, monkeypatch):
+    def test_weaviate_get_http_host_address(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting HTTP host address."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -189,7 +189,7 @@ class TestWeaviateContainer:
 
         assert address == "localhost:32768"
 
-    def test_weaviate_get_http_port(self, monkeypatch):
+    def test_weaviate_get_http_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting HTTP port."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
@@ -201,7 +201,7 @@ class TestWeaviateContainer:
 
         assert port == 32768
 
-    def test_weaviate_get_grpc_port(self, monkeypatch):
+    def test_weaviate_get_grpc_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting gRPC port."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
@@ -213,7 +213,7 @@ class TestWeaviateContainer:
 
         assert port == 32769
 
-    def test_weaviate_get_grpc_host_address(self, monkeypatch):
+    def test_weaviate_get_grpc_host_address(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting gRPC host address."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -248,7 +248,7 @@ class TestMockServerContainer:
 
         assert mockserver._image.image_name == "mockserver/mockserver:5.15.0"
 
-    def test_mockserver_get_endpoint(self, monkeypatch):
+    def test_mockserver_get_endpoint(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting HTTP endpoint."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -272,7 +272,7 @@ class TestMockServerContainer:
         with pytest.raises(RuntimeError, match="Container not started"):
             mockserver.get_endpoint()
 
-    def test_mockserver_get_secure_endpoint(self, monkeypatch):
+    def test_mockserver_get_secure_endpoint(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting HTTPS endpoint."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -296,7 +296,7 @@ class TestMockServerContainer:
         with pytest.raises(RuntimeError, match="Container not started"):
             mockserver.get_secure_endpoint()
 
-    def test_mockserver_get_server_port(self, monkeypatch):
+    def test_mockserver_get_server_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting server port."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
@@ -308,7 +308,7 @@ class TestMockServerContainer:
 
         assert port == 32768
 
-    def test_mockserver_get_url(self, monkeypatch):
+    def test_mockserver_get_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting URL (alias for get_endpoint)."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -347,7 +347,7 @@ class TestToxiproxyContainer:
 
         assert toxiproxy._image.image_name == "ghcr.io/shopify/toxiproxy:2.5.0"
 
-    def test_toxiproxy_get_control_port(self, monkeypatch):
+    def test_toxiproxy_get_control_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting control port."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
@@ -359,7 +359,7 @@ class TestToxiproxyContainer:
 
         assert port == 32768
 
-    def test_toxiproxy_get_control_url(self, monkeypatch):
+    def test_toxiproxy_get_control_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting control URL."""
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_host",
@@ -383,7 +383,7 @@ class TestToxiproxyContainer:
         with pytest.raises(RuntimeError, match="Container not started"):
             toxiproxy.get_control_url()
 
-    def test_toxiproxy_get_proxy_port(self, monkeypatch):
+    def test_toxiproxy_get_proxy_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test getting proxy port."""
         call_tracker = {"called_with": None}
         

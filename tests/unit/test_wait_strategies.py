@@ -194,7 +194,7 @@ class TestHostPortWaitStrategy:
         assert result is strategy
         assert strategy._ports == [8080, 8081]
     
-    def test_wait_timeout(self, mock_target, monkeypatch):
+    def test_wait_timeout(self, mock_target, monkeypatch: pytest.MonkeyPatch):
         """Test wait times out if ports never become available."""
         # Mock the _check_port method to always return False
         def mock_check_port(host, port, timeout=1.0):
@@ -208,7 +208,7 @@ class TestHostPortWaitStrategy:
         with pytest.raises(TimeoutError, match="Timed out waiting for ports"):
             strategy.wait_until_ready(mock_target)
     
-    def test_wait_succeeds_when_port_ready(self, mock_target, monkeypatch):
+    def test_wait_succeeds_when_port_ready(self, mock_target, monkeypatch: pytest.MonkeyPatch):
         """Test wait succeeds when port becomes available."""
         # Mock the _check_port method to return True
         def mock_check_port(host, port, timeout=1.0):

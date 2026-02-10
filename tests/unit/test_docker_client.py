@@ -109,7 +109,7 @@ class TestDockerClientFactory:
         assert labels["org.testcontainers.lang"] == "python"
         assert "org.testcontainers.version" in labels
 
-    def test_client_creation_success(self, reset_factory, monkeypatch):
+    def test_client_creation_success(self, reset_factory, monkeypatch: pytest.MonkeyPatch):
         """Test successful client creation."""
         mock_client = MagicMock()
         mock_client.ping.return_value = True
@@ -132,7 +132,7 @@ class TestDockerClientFactory:
         mock_from_env.assert_called_once()
         mock_client.ping.assert_called_once()
 
-    def test_client_creation_cached(self, reset_factory, monkeypatch):
+    def test_client_creation_cached(self, reset_factory, monkeypatch: pytest.MonkeyPatch):
         """Test that client is cached after first creation."""
         mock_client = MagicMock()
         mock_client.ping.return_value = True
@@ -156,7 +156,7 @@ class TestDockerClientFactory:
         # Should only create once
         assert mock_from_env.call_count == 1
 
-    def test_is_docker_available_true(self, reset_factory, monkeypatch):
+    def test_is_docker_available_true(self, reset_factory, monkeypatch: pytest.MonkeyPatch):
         """Test is_docker_available returns True when Docker is available."""
         mock_client = MagicMock()
         mock_client.ping.return_value = True
@@ -176,7 +176,7 @@ class TestDockerClientFactory:
         
         assert factory.is_docker_available() is True
 
-    def test_is_docker_available_false(self, reset_factory, monkeypatch):
+    def test_is_docker_available_false(self, reset_factory, monkeypatch: pytest.MonkeyPatch):
         """Test is_docker_available returns False when Docker is not available."""
         mock_from_env = MagicMock(side_effect=Exception("Docker not available"))
         monkeypatch.setattr('testcontainers.core.docker_client.docker.from_env', mock_from_env)
@@ -185,7 +185,7 @@ class TestDockerClientFactory:
         
         assert factory.is_docker_available() is False
 
-    def test_cached_failure(self, reset_factory, monkeypatch):
+    def test_cached_failure(self, reset_factory, monkeypatch: pytest.MonkeyPatch):
         """Test that failures are cached and re-raised."""
         mock_from_env = MagicMock(side_effect=Exception("Docker not available"))
         monkeypatch.setattr('testcontainers.core.docker_client.docker.from_env', mock_from_env)
@@ -210,7 +210,7 @@ class TestDockerClientFactory:
         
         assert ip == 'localhost'
 
-    def test_docker_host_ip_from_env(self, reset_factory, monkeypatch):
+    def test_docker_host_ip_from_env(self, reset_factory, monkeypatch: pytest.MonkeyPatch):
         """Test Docker host IP extraction from DOCKER_HOST env var."""
         monkeypatch.setenv('DOCKER_HOST', 'tcp://192.168.1.100:2375')
         factory = DockerClientFactory()

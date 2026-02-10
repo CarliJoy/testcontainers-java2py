@@ -111,7 +111,7 @@ class TestPostgreSQLContainer:
 
         assert postgres.get_driver_class_name() == "org.postgresql.Driver"
 
-    def test_postgres_get_jdbc_url(self, monkeypatch):
+    def test_postgres_get_jdbc_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test PostgreSQL JDBC URL generation."""
         postgres = PostgreSQLContainer()
         postgres._container = MagicMock()
@@ -122,7 +122,7 @@ class TestPostgreSQLContainer:
 
         assert url == "jdbc:postgresql://localhost:5432/test"
 
-    def test_postgres_get_connection_string(self, monkeypatch):
+    def test_postgres_get_connection_string(self, monkeypatch: pytest.MonkeyPatch):
         """Test PostgreSQL Python connection string."""
         postgres = PostgreSQLContainer()
         postgres._container = MagicMock()
@@ -231,7 +231,7 @@ class TestMySQLContainer:
 
         assert mysql.get_driver_class_name() == "com.mysql.cj.jdbc.Driver"
 
-    def test_mysql_get_jdbc_url(self, monkeypatch):
+    def test_mysql_get_jdbc_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test MySQL JDBC URL generation."""
         mysql = MySQLContainer()
         mysql._container = MagicMock()
@@ -242,7 +242,7 @@ class TestMySQLContainer:
 
         assert url == "jdbc:mysql://localhost:3306/test"
 
-    def test_mysql_get_connection_string(self, monkeypatch):
+    def test_mysql_get_connection_string(self, monkeypatch: pytest.MonkeyPatch):
         """Test MySQL Python connection string."""
         mysql = MySQLContainer()
         mysql._container = MagicMock()
@@ -281,7 +281,7 @@ class TestMongoDBContainer:
 
         assert mongo._image.image_name == "mongo:6"
 
-    def test_mongodb_get_connection_string(self, monkeypatch):
+    def test_mongodb_get_connection_string(self, monkeypatch: pytest.MonkeyPatch):
         """Test MongoDB connection string (Java behavior - no auth)."""
         mongo = MongoDBContainer()
         mongo._container = MagicMock()
@@ -292,7 +292,7 @@ class TestMongoDBContainer:
 
         assert url == "mongodb://localhost:27017"
 
-    def test_mongodb_get_replica_set_url(self, monkeypatch):
+    def test_mongodb_get_replica_set_url(self, monkeypatch: pytest.MonkeyPatch):
         """Test MongoDB replica set URL (Java method)."""
         mongo = MongoDBContainer()
         mongo._container = MagicMock()
@@ -305,7 +305,7 @@ class TestMongoDBContainer:
 
         assert url == "mongodb://localhost:27017/testdb"
 
-    def test_mongodb_get_replica_set_url_default_db(self, monkeypatch):
+    def test_mongodb_get_replica_set_url_default_db(self, monkeypatch: pytest.MonkeyPatch):
         """Test MongoDB replica set URL with default database."""
         mongo = MongoDBContainer()
         mongo._container = MagicMock()
@@ -318,7 +318,7 @@ class TestMongoDBContainer:
 
         assert url == "mongodb://localhost:27017/test"
 
-    def test_mongodb_get_replica_set_url_not_running(self, monkeypatch):
+    def test_mongodb_get_replica_set_url_not_running(self, monkeypatch: pytest.MonkeyPatch):
         """Test MongoDB replica set URL raises when not running."""
         mongo = MongoDBContainer()
 
@@ -360,7 +360,7 @@ class TestRedisContainer:
         assert result is redis
         assert redis._password == "mypassword"
 
-    def test_redis_get_connection_url_no_password(self, monkeypatch):
+    def test_redis_get_connection_url_no_password(self, monkeypatch: pytest.MonkeyPatch):
         """Test Redis connection URL without password."""
         redis = RedisContainer()
         redis._container = MagicMock()
@@ -371,7 +371,7 @@ class TestRedisContainer:
 
         assert url == "redis://localhost:6379"
 
-    def test_redis_get_connection_url_with_password(self, monkeypatch):
+    def test_redis_get_connection_url_with_password(self, monkeypatch: pytest.MonkeyPatch):
         """Test Redis connection URL with password."""
         redis = RedisContainer()
         redis.with_password("mypassword")
@@ -461,7 +461,7 @@ class TestJdbcDatabaseContainer:
 
         assert container.get_connection_url() == container.get_jdbc_url()
 
-    def test_jdbc_get_port(self, monkeypatch):
+    def test_jdbc_get_port(self, monkeypatch: pytest.MonkeyPatch):
         """Test JDBC get_port returns mapped port."""
         class TestJdbcContainer(JdbcDatabaseContainer):
             def get_driver_class_name(self) -> str:

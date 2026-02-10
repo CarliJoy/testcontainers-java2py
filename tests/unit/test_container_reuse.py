@@ -61,14 +61,14 @@ class TestContainerReuse:
         config = TestcontainersConfig.get_instance()
         assert config.environment_supports_reuse() is False
     
-    def test_reuse_enabled_via_environment(self, reset_config, monkeypatch):
+    def test_reuse_enabled_via_environment(self, reset_config, monkeypatch: pytest.MonkeyPatch):
         """Test enabling reuse via environment variable."""
         monkeypatch.setenv("TESTCONTAINERS_REUSE_ENABLE", "true")
         TestcontainersConfig.reset()
         config = TestcontainersConfig.get_instance()
         assert config.environment_supports_reuse() is True
     
-    def test_reuse_disabled_via_environment(self, reset_config, monkeypatch):
+    def test_reuse_disabled_via_environment(self, reset_config, monkeypatch: pytest.MonkeyPatch):
         """Test disabling reuse via environment variable."""
         monkeypatch.setenv("TESTCONTAINERS_REUSE_ENABLE", "false")
         TestcontainersConfig.reset()
@@ -169,7 +169,7 @@ class TestContainerReuse:
         finally:
             os.unlink(temp_file)
     
-    def test_find_container_for_reuse_finds_existing(self, mock_docker_client, monkeypatch):
+    def test_find_container_for_reuse_finds_existing(self, mock_docker_client, monkeypatch: pytest.MonkeyPatch):
         """Test finding an existing container for reuse."""
         # Mock existing container
         existing_container = Mock()
@@ -186,7 +186,7 @@ class TestContainerReuse:
         assert found_id == "existing-container-id"
         mock_docker_client.containers.list.assert_called_once()
     
-    def test_find_container_for_reuse_returns_none_if_not_found(self, mock_docker_client, monkeypatch):
+    def test_find_container_for_reuse_returns_none_if_not_found(self, mock_docker_client, monkeypatch: pytest.MonkeyPatch):
         """Test that find_container_for_reuse returns None if no match."""
         mock_docker_client.containers.list = Mock(return_value=[])
         

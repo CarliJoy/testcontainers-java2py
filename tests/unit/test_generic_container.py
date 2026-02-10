@@ -159,7 +159,7 @@ class TestGenericContainerFluentAPI:
 class TestGenericContainerLifecycle:
     """Tests for GenericContainer lifecycle methods."""
     
-    def test_start_creates_and_starts_container(self, monkeypatch):
+    def test_start_creates_and_starts_container(self, monkeypatch: pytest.MonkeyPatch):
         """Test that start creates and starts the container."""
         # Setup mocks
         mock_client = Mock()
@@ -193,7 +193,7 @@ class TestGenericContainerLifecycle:
         assert container._container is mock_container
         assert container._container_id == "test-container-id"
     
-    def test_start_with_port_bindings(self, monkeypatch):
+    def test_start_with_port_bindings(self, monkeypatch: pytest.MonkeyPatch):
         """Test start with port bindings."""
         mock_client = Mock()
         mock_container = Mock()
@@ -217,7 +217,7 @@ class TestGenericContainerLifecycle:
         assert "80/tcp" in call_kwargs["ports"]
         assert call_kwargs["ports"]["80/tcp"] == 8080
     
-    def test_start_with_environment(self, monkeypatch):
+    def test_start_with_environment(self, monkeypatch: pytest.MonkeyPatch):
         """Test start with environment variables."""
         mock_client = Mock()
         mock_container = Mock()
@@ -289,7 +289,7 @@ class TestGenericContainerLifecycle:
 class TestGenericContainerContextManager:
     """Tests for context manager support."""
     
-    def test_context_manager(self, monkeypatch):
+    def test_context_manager(self, monkeypatch: pytest.MonkeyPatch):
         """Test using container as context manager."""
         mock_client = Mock()
         mock_container = Mock()

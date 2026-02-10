@@ -185,7 +185,7 @@ class TestRemoteDockerImage:
         assert "RemoteDockerImage" in repr(image)
         assert "nginx:latest" in repr(image)
     
-    def test_resolve_with_pull(self, monkeypatch):
+    def test_resolve_with_pull(self, monkeypatch: pytest.MonkeyPatch):
         """Test resolve when policy says to pull."""
         mock_client = Mock()
         policy = AlwaysPullPolicy()
