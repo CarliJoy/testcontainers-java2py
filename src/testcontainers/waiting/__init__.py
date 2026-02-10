@@ -15,6 +15,7 @@ from testcontainers.waiting.log import LogMessageWaitStrategy
 from testcontainers.waiting.port import HostPortWaitStrategy
 from testcontainers.waiting.http import HttpWaitStrategy
 from testcontainers.waiting.shell import ShellStrategy
+from testcontainers.waiting.sqlalchemy import SqlAlchemyWaitStrategy
 from testcontainers.waiting.wait_all import WaitAllStrategy, WaitAllMode
 
 __all__ = [
@@ -26,6 +27,7 @@ __all__ = [
     "HostPortWaitStrategy",
     "HttpWaitStrategy",
     "ShellStrategy",
+    "SqlAlchemyWaitStrategy",
     "WaitAllStrategy",
     "WaitAllMode",
 ]

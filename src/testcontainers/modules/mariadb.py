@@ -6,6 +6,7 @@ https://github.com/testcontainers/testcontainers-java/blob/main/modules/mariadb/
 """
 
 from __future__ import annotations
+
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
 from testcontainers.waiting.log import LogMessageWaitStrategy
 
@@ -33,11 +34,13 @@ class MariaDBContainer(JdbcDatabaseContainer):
         password: str = DEFAULT_PASSWORD,
         dbname: str = DEFAULT_DATABASE,
     ):
-        super().__init__(image=image, port=self.MARIADB_PORT, username=username, password=password, dbname=dbname)
-        
+        super().__init__(
+            image=image, port=self.MARIADB_PORT, username=username, password=password, dbname=dbname
+        )
+
         # Set startup attempts like Java (line 87 in Java source)
         self._startup_attempts = 3
-        
+
         # Configure environment variables
         self._configure()
 
@@ -45,13 +48,13 @@ class MariaDBContainer(JdbcDatabaseContainer):
         """Configure environment variables for MariaDB initialization."""
         # Database setup
         self.with_env("MYSQL_DATABASE", self._dbname)
-        
+
         # Handle non-root users (Java logic from lines 68-72)
-        # Note: Username comparison is case-sensitive (MySQL/MariaDB are case-sensitive for usernames)
+        # Note: Username comparison is case-sensitive for MySQL/MariaDB
         is_root_user = self._username == self.MYSQL_ROOT_USER
         if not is_root_user:
             self.with_env("MYSQL_USER", self._username)
-        
+
         # Password configuration logic (Java logic from lines 73-83)
         has_password = bool(self._password)
         if has_password:
@@ -61,7 +64,7 @@ class MariaDBContainer(JdbcDatabaseContainer):
             self.with_env("MYSQL_ALLOW_EMPTY_PASSWORD", "yes")
         else:
             raise ValueError("Empty password can be used only with the root user")
-        
+
         # Add wait strategy matching Java/MySQL behavior (moved inside _configure for consistency)
         # MariaDB uses the same "ready for connections" message as MySQL
         self.waiting_for(
@@ -82,13 +85,26 @@ class MariaDBContainer(JdbcDatabaseContainer):
             JDBC connection URL in format: jdbc:mariadb://host:port/database[?params]
         """
         additional_params = self._construct_url_parameters("?", "&")
-        return f"jdbc:mariadb://{self.get_host()}:{self.get_port()}/{self._dbname}{additional_params}"
+        return (
+            f"jdbc:mariadb://{self.get_host()}:{self.get_port()}/{self._dbname}{additional_params}"
+        )
+
+    def get_connection_string(self) -> str:
+        """
+        Get the MariaDB connection string (Python native format).
+
+        Returns:
+            Connection string in format: mysql://user:pass@host:port/database
+        """
+        host = self.get_host()
+        port = self.get_port()
+        return f"mysql://{self._username}:{self._password}@{host}:{port}/{self._dbname}"
 
     def get_test_query_string(self) -> str:
         """Get the test query string for MariaDB."""
         return "SELECT 1"
 
-    def with_config_override(self, config_path: str) -> "MariaDBContainer":
+    def with_config_override(self, config_path: str) -> MariaDBContainer:
         """
         Map a custom MariaDB configuration file into the container.
 
