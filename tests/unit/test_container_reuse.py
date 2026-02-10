@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, MagicMock
 
 import pytest
 
@@ -61,19 +61,19 @@ class TestContainerReuse:
         config = TestcontainersConfig.get_instance()
         assert config.environment_supports_reuse() is False
     
-    def test_reuse_enabled_via_environment(self, reset_config):
+    def test_reuse_enabled_via_environment(self, reset_config, monkeypatch):
         """Test enabling reuse via environment variable."""
-        with patch.dict(os.environ, {"TESTCONTAINERS_REUSE_ENABLE": "true"}):
-            TestcontainersConfig.reset()
-            config = TestcontainersConfig.get_instance()
-            assert config.environment_supports_reuse() is True
+        monkeypatch.setenv("TESTCONTAINERS_REUSE_ENABLE", "true")
+        TestcontainersConfig.reset()
+        config = TestcontainersConfig.get_instance()
+        assert config.environment_supports_reuse() is True
     
-    def test_reuse_disabled_via_environment(self, reset_config):
+    def test_reuse_disabled_via_environment(self, reset_config, monkeypatch):
         """Test disabling reuse via environment variable."""
-        with patch.dict(os.environ, {"TESTCONTAINERS_REUSE_ENABLE": "false"}):
-            TestcontainersConfig.reset()
-            config = TestcontainersConfig.get_instance()
-            assert config.environment_supports_reuse() is False
+        monkeypatch.setenv("TESTCONTAINERS_REUSE_ENABLE", "false")
+        TestcontainersConfig.reset()
+        config = TestcontainersConfig.get_instance()
+        assert config.environment_supports_reuse() is False
     
     def test_hash_configuration_consistent(self, mock_docker_client):
         """Test that configuration hash is consistent for same config."""
@@ -169,13 +169,15 @@ class TestContainerReuse:
         finally:
             os.unlink(temp_file)
     
-    @patch("testcontainers.core.generic_container.DockerClientFactory")
-    def test_find_container_for_reuse_finds_existing(self, mock_factory, mock_docker_client):
+    def test_find_container_for_reuse_finds_existing(self, mock_docker_client, monkeypatch):
         """Test finding an existing container for reuse."""
         # Mock existing container
         existing_container = Mock()
         existing_container.id = "existing-container-id"
         mock_docker_client.containers.list = Mock(return_value=[existing_container])
+        
+        mock_factory = Mock()
+        monkeypatch.setattr("testcontainers.core.generic_container.DockerClientFactory", mock_factory)
         
         container = GenericContainer("test:latest", docker_client=mock_docker_client)
         
@@ -184,10 +186,12 @@ class TestContainerReuse:
         assert found_id == "existing-container-id"
         mock_docker_client.containers.list.assert_called_once()
     
-    @patch("testcontainers.core.generic_container.DockerClientFactory")
-    def test_find_container_for_reuse_returns_none_if_not_found(self, mock_factory, mock_docker_client):
+    def test_find_container_for_reuse_returns_none_if_not_found(self, mock_docker_client, monkeypatch):
         """Test that find_container_for_reuse returns None if no match."""
         mock_docker_client.containers.list = Mock(return_value=[])
+        
+        mock_factory = Mock()
+        monkeypatch.setattr("testcontainers.core.generic_container.DockerClientFactory", mock_factory)
         
         container = GenericContainer("test:latest", docker_client=mock_docker_client)
         

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from testcontainers.modules.clickhouse import ClickHouseContainer
@@ -78,38 +78,36 @@ class TestClickHouseContainer:
         clickhouse = ClickHouseContainer()
         assert clickhouse.get_driver_class_name() == "com.clickhouse.jdbc.Driver"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_clickhouse_get_jdbc_url(self, mock_get_mapped_port, mock_get_host):
+    def test_clickhouse_get_jdbc_url(self, monkeypatch):
         """Test getting JDBC URL."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32768
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32768)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         clickhouse = ClickHouseContainer(dbname="testdb")
         url = clickhouse.get_jdbc_url()
 
         assert url == "jdbc:clickhouse://localhost:32768/testdb"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_clickhouse_get_http_url(self, mock_get_mapped_port, mock_get_host):
+    def test_clickhouse_get_http_url(self, monkeypatch):
         """Test getting HTTP URL."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32768
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32768)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         clickhouse = ClickHouseContainer()
         url = clickhouse.get_http_url()
 
         assert url == "http://localhost:32768"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_clickhouse_get_connection_string(
-        self, mock_get_mapped_port, mock_get_host
-    ):
+    def test_clickhouse_get_connection_string(self, monkeypatch):
         """Test getting connection string."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32768
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32768)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         clickhouse = ClickHouseContainer(
             username="user", password="pass", dbname="testdb"
@@ -229,26 +227,24 @@ class TestCockroachDBContainer:
         cockroach = CockroachDBContainer()
         assert cockroach.get_driver_class_name() == "org.postgresql.Driver"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_cockroachdb_get_jdbc_url(self, mock_get_mapped_port, mock_get_host):
+    def test_cockroachdb_get_jdbc_url(self, monkeypatch):
         """Test getting JDBC URL."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32770
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32770)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         cockroach = CockroachDBContainer(dbname="testdb")
         url = cockroach.get_jdbc_url()
 
         assert url == "jdbc:postgresql://localhost:32770/testdb"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_cockroachdb_get_connection_string_with_password(
-        self, mock_get_mapped_port, mock_get_host
-    ):
+    def test_cockroachdb_get_connection_string_with_password(self, monkeypatch):
         """Test getting connection string with password."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32770
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32770)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         cockroach = CockroachDBContainer(
             username="root", password="mypass", dbname="testdb"
@@ -257,14 +253,12 @@ class TestCockroachDBContainer:
 
         assert conn_str == "postgresql://root:mypass@localhost:32770/testdb"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_cockroachdb_get_connection_string_without_password(
-        self, mock_get_mapped_port, mock_get_host
-    ):
+    def test_cockroachdb_get_connection_string_without_password(self, monkeypatch):
         """Test getting connection string without password."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32770
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32770)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         cockroach = CockroachDBContainer(username="root", password="", dbname="testdb")
         conn_str = cockroach.get_connection_string()
@@ -337,12 +331,12 @@ class TestBrowserWebDriverContainer:
         with pytest.raises(ValueError, match="Unsupported browser type"):
             BrowserWebDriverContainer(browser="invalid")  # type: ignore
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_selenium_get_selenium_url(self, mock_get_mapped_port, mock_get_host):
+    def test_selenium_get_selenium_url(self, monkeypatch):
         """Test getting Selenium WebDriver URL."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32772
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32772)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         selenium = BrowserWebDriverContainer()
         selenium._container = MagicMock()  # Set _container to simulate started container
@@ -357,12 +351,12 @@ class TestBrowserWebDriverContainer:
         with pytest.raises(RuntimeError, match="Container not started"):
             selenium.get_selenium_url()
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_selenium_get_selenium_address(self, mock_get_mapped_port, mock_get_host):
+    def test_selenium_get_selenium_address(self, monkeypatch):
         """Test getting Selenium address (alias for get_selenium_url)."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32772
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32772)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         selenium = BrowserWebDriverContainer()
         selenium._container = MagicMock()  # Set _container to simulate started container
@@ -370,12 +364,12 @@ class TestBrowserWebDriverContainer:
 
         assert url == "http://localhost:32772/wd/hub"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_selenium_get_vnc_address(self, mock_get_mapped_port, mock_get_host):
+    def test_selenium_get_vnc_address(self, monkeypatch):
         """Test getting VNC address."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.side_effect = lambda port: 32773 if port == 5900 else 32772
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(side_effect=lambda port: 32773 if port == 5900 else 32772)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         selenium = BrowserWebDriverContainer()
         selenium._container = MagicMock()  # Set _container to simulate started container
@@ -390,10 +384,10 @@ class TestBrowserWebDriverContainer:
         with pytest.raises(RuntimeError, match="Container not started"):
             selenium.get_vnc_address()
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_selenium_get_selenium_port(self, mock_get_mapped_port):
+    def test_selenium_get_selenium_port(self, monkeypatch):
         """Test getting Selenium port."""
-        mock_get_mapped_port.return_value = 32772
+        mock_get_mapped_port = MagicMock(return_value=32772)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         selenium = BrowserWebDriverContainer()
         port = selenium.get_selenium_port()
@@ -401,10 +395,10 @@ class TestBrowserWebDriverContainer:
         assert port == 32772
         mock_get_mapped_port.assert_called_once_with(4444)
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_selenium_get_vnc_port(self, mock_get_mapped_port):
+    def test_selenium_get_vnc_port(self, monkeypatch):
         """Test getting VNC port."""
-        mock_get_mapped_port.return_value = 32773
+        mock_get_mapped_port = MagicMock(return_value=32773)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         selenium = BrowserWebDriverContainer()
         port = selenium.get_vnc_port()
