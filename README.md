@@ -1,18 +1,45 @@
-# Testcontainers
+# Testcontainers Python
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.testcontainers/testcontainers/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.testcontainers/testcontainers)
+> Python port of Testcontainers - a library that supports pytest tests, providing lightweight, throwaway instances of common databases, Selenium web browsers, or anything else that can run in a Docker container.
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/189f28a2-7faa-42ff-b03c-738142079cc9/deploy-status)](https://app.netlify.com/sites/testcontainers/deploys)
+## Repository Organization
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=33816473&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json&location=EastUs)
+This repository contains:
 
-[![Revved up by Develocity](https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.testcontainers.org/scans)
+- **Python Implementation** (main directory)
+  - `src/testcontainers/` - Python source code
+  - `tests/` - Python test suite
+  - `pyproject.toml` - Python package configuration
+  - See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed implementation status
 
-> Testcontainers is a Java library that supports JUnit tests, providing lightweight, throwaway instances of common databases, Selenium web browsers, or anything else that can run in a Docker container.
+- **Java Reference Implementation** (`java_origin/` directory)
+  - Original Java testcontainers source code used as reference for the Python port
+  - See [java_origin/README.md](java_origin/README.md) for details
 
-![Testcontainers logo](docs/logo.png)
+## Quick Start
 
-# [Read the documentation here](https://java.testcontainers.org)
+Install the package:
+
+```bash
+pip install testcontainers-python
+```
+
+Use a container in your tests:
+
+```python
+from testcontainers.postgres import PostgresContainer
+import sqlalchemy
+
+def test_with_postgres():
+    with PostgresContainer("postgres:16") as postgres:
+        engine = sqlalchemy.create_engine(postgres.get_connection_url())
+        # Your test code here
+```
+
+## Documentation
+
+- **Python Implementation**: See [PROJECT_STATUS.md](PROJECT_STATUS.md) for features, modules, and examples
+- **Original Java Documentation**: https://java.testcontainers.org
 
 ## License
 

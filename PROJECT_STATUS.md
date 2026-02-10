@@ -4,6 +4,28 @@
 
 ---
 
+## Repository Organization
+
+This repository contains the Python port of Testcontainers with the original Java source preserved for reference:
+
+### Python Implementation (Main Directory)
+- `src/testcontainers/` - Complete Python implementation with 100% feature parity
+- `tests/` - Comprehensive test suite (520+ tests)
+- `pyproject.toml` - Python package configuration
+- Documentation files (this file, README.md, etc.)
+
+### Java Reference Implementation (`java_origin/` Directory)
+All original Java code, build files, and Java-specific configurations have been moved to the `java_origin/` subdirectory:
+- Java source code (`core/`, `modules/`, `examples/`)
+- Gradle build system and configuration
+- Java CI/CD pipelines (GitHub Actions, CircleCI, Azure Pipelines)
+- Java IDE settings and development tools
+- Original Java documentation
+
+See [java_origin/README.md](java_origin/README.md) for complete details about the Java reference implementation.
+
+---
+
 ## Executive Summary
 
 The testcontainers-java to Python conversion project has achieved **100% Java feature parity** with all critical and advanced features implemented. The library is **production-ready** and suitable for enterprise deployment.
@@ -25,15 +47,16 @@ The testcontainers-java to Python conversion project has achieved **100% Java fe
 
 ## Table of Contents
 
-1. [Feature Parity Status](#feature-parity-status)
-2. [Core Infrastructure](#core-infrastructure)
-3. [Specialized Modules](#specialized-modules)
-4. [Wait Strategies](#wait-strategies)
-5. [Testing & Quality](#testing--quality)
-6. [Installation & Getting Started](#installation--getting-started)
-7. [Migration from Java](#migration-from-java)
-8. [Development Guidelines](#development-guidelines)
-9. [Future Roadmap](#future-roadmap)
+1. [Repository Organization](#repository-organization)
+2. [Feature Parity Status](#feature-parity-status)
+3. [Core Infrastructure](#core-infrastructure)
+4. [Specialized Modules](#specialized-modules)
+5. [Wait Strategies](#wait-strategies)
+6. [Testing & Quality](#testing--quality)
+7. [Installation & Getting Started](#installation--getting-started)
+8. [Migration from Java](#migration-from-java)
+9. [Development Guidelines](#development-guidelines)
+10. [Future Roadmap](#future-roadmap)
 
 ---
 
