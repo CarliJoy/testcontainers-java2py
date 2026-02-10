@@ -26,6 +26,7 @@ class LocalStackContainer(GenericContainer):
     DEFAULT_REGION = "us-east-1"
     DEFAULT_ACCESS_KEY_ID = "test"
     DEFAULT_SECRET_ACCESS_KEY = "test"
+    STARTER_SCRIPT = "/tmp/localstack_boot.sh"
 
     def __init__(self, image: str = DEFAULT_IMAGE):
         super().__init__(image)
@@ -40,6 +41,22 @@ class LocalStackContainer(GenericContainer):
 
         # Service enablement
         self._enabled_services = []
+
+        # CRITICAL: Bind Docker socket for Lambda/ECS/Docker-in-Docker support
+        # This matches Java implementation line 61
+        docker_socket = "/var/run/docker.sock"
+        self.with_bind(docker_socket, docker_socket)
+
+        # Configure starter script mechanism (Java lines 63-69)
+        # This ensures LocalStack starts with proper configuration
+        self.with_command(
+            "sh",
+            "-c",
+            f"while [ ! -f {self.STARTER_SCRIPT} ]; do sleep 0.1; done; {self.STARTER_SCRIPT}"
+        )
+
+        # Expose port
+        self.with_exposed_ports(self.PORT)
 
         # Wait for startup message
         self.waiting_for(LogMessageWaitStrategy().with_regex(r".*Ready\.\n"))

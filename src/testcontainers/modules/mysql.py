@@ -90,6 +90,9 @@ class MySQLContainer(JdbcDatabaseContainer):
         else:
             raise ValueError("Empty password can be used only with the root user")
 
+        # Set startup attempts like Java (line 98 in Java source)
+        self._startup_attempts = 3
+
         # Wait for MySQL to be ready
         # MySQL logs "ready for connections" when it's ready to accept connections
         self.waiting_for(
@@ -113,12 +116,29 @@ class MySQLContainer(JdbcDatabaseContainer):
         """
         Get the JDBC connection URL for MySQL.
 
+        Automatically adds useSSL=false and allowPublicKeyRetrieval=true
+        parameters if not already present, matching Java implementation.
+
         Returns:
-            JDBC connection URL in format: jdbc:mysql://host:port/database
+            JDBC connection URL in format: jdbc:mysql://host:port/database[?params]
         """
         host = self.get_host()
         port = self.get_port()
-        return f"jdbc:mysql://{host}:{port}/{self._dbname}"
+        
+        # Build base URL with any configured URL parameters
+        additional_params = self._construct_url_parameters("?", "&")
+        url = f"jdbc:mysql://{host}:{port}/{self._dbname}{additional_params}"
+        
+        # Add default SSL settings like Java (lines 118-131 in Java source)
+        # This matches constructUrlForConnection() behavior
+        if "useSSL=" not in url:
+            separator = "&" if "?" in url else "?"
+            url = url + separator + "useSSL=false"
+        
+        if "allowPublicKeyRetrieval=" not in url:
+            url = url + "&allowPublicKeyRetrieval=true"
+        
+        return url
 
     def get_connection_string(self) -> str:
         """
@@ -130,3 +150,23 @@ class MySQLContainer(JdbcDatabaseContainer):
         host = self.get_host()
         port = self.get_port()
         return f"mysql://{self._username}:{self._password}@{host}:{port}/{self._dbname}"
+
+    def with_config_override(self, config_path: str) -> "MySQLContainer":
+        """
+        Map a custom MySQL configuration file into the container.
+
+        This matches the Java withConfigurationOverride() method (lines 153-156).
+        The configuration file will be mounted at /etc/mysql/conf.d/.
+
+        Args:
+            config_path: Path to custom my.cnf file
+
+        Returns:
+            This container instance
+
+        Example:
+            >>> mysql = MySQLContainer()
+            >>> mysql.with_config_override("./custom-my.cnf")
+        """
+        self.with_copy_file_to_container(config_path, "/etc/mysql/conf.d/custom.cnf")
+        return self
