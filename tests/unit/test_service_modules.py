@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -49,10 +49,10 @@ class TestConsulContainer:
         assert "kv put config/test1 value1" in consul._init_commands
         assert "kv put config/test2 value2" in consul._init_commands
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_consul_get_http_port(self, mock_get_mapped_port):
+    def test_consul_get_http_port(self, monkeypatch):
         """Test getting HTTP port."""
-        mock_get_mapped_port.return_value = 32768
+        mock_get_mapped_port = MagicMock(return_value=32768)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         consul = ConsulContainer()
         port = consul.get_http_port()
@@ -60,10 +60,10 @@ class TestConsulContainer:
         assert port == 32768
         mock_get_mapped_port.assert_called_once_with(8500)
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_consul_get_grpc_port(self, mock_get_mapped_port):
+    def test_consul_get_grpc_port(self, monkeypatch):
         """Test getting gRPC port."""
-        mock_get_mapped_port.return_value = 32769
+        mock_get_mapped_port = MagicMock(return_value=32769)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         consul = ConsulContainer()
         port = consul.get_grpc_port()
@@ -103,24 +103,24 @@ class TestLLdapContainer:
         assert result is ldap
         assert ldap._env["LLDAP_LDAP_USER_PASS"] == "secret123"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_lldap_get_ldap_url_without_tls(self, mock_get_mapped_port, mock_get_host):
+    def test_lldap_get_ldap_url_without_tls(self, monkeypatch):
         """Test getting LDAP URL without TLS."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32770
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32770)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         ldap = LLdapContainer()
         url = ldap.get_ldap_url()
 
         assert url == "ldap://localhost:32770"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_lldap_get_ldap_url_with_tls(self, mock_get_mapped_port, mock_get_host):
+    def test_lldap_get_ldap_url_with_tls(self, monkeypatch):
         """Test getting LDAP URL with TLS."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32771
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32771)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         ldap = LLdapContainer()
         ldap.with_env("LLDAP_LDAPS_OPTIONS__ENABLED", "true")
@@ -189,72 +189,72 @@ class TestLgtmStackContainer:
         assert 4318 in lgtm._exposed_ports
         assert 9090 in lgtm._exposed_ports
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_lgtm_get_grafana_http_url(self, mock_get_mapped_port, mock_get_host):
+    def test_lgtm_get_grafana_http_url(self, monkeypatch):
         """Test getting Grafana HTTP URL."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32772
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32772)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         lgtm = LgtmStackContainer()
         url = lgtm.get_grafana_http_url()
 
         assert url == "http://localhost:32772"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_lgtm_get_otlp_grpc_url(self, mock_get_mapped_port, mock_get_host):
+    def test_lgtm_get_otlp_grpc_url(self, monkeypatch):
         """Test getting OTLP gRPC URL."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32773
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32773)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         lgtm = LgtmStackContainer()
         url = lgtm.get_otlp_grpc_url()
 
         assert url == "http://localhost:32773"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_lgtm_get_otlp_http_url(self, mock_get_mapped_port, mock_get_host):
+    def test_lgtm_get_otlp_http_url(self, monkeypatch):
         """Test getting OTLP HTTP URL."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32774
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32774)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         lgtm = LgtmStackContainer()
         url = lgtm.get_otlp_http_url()
 
         assert url == "http://localhost:32774"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_lgtm_get_tempo_url(self, mock_get_mapped_port, mock_get_host):
+    def test_lgtm_get_tempo_url(self, monkeypatch):
         """Test getting Tempo URL."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32775
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32775)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         lgtm = LgtmStackContainer()
         url = lgtm.get_tempo_url()
 
         assert url == "http://localhost:32775"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_lgtm_get_loki_url(self, mock_get_mapped_port, mock_get_host):
+    def test_lgtm_get_loki_url(self, monkeypatch):
         """Test getting Loki URL."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32776
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32776)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         lgtm = LgtmStackContainer()
         url = lgtm.get_loki_url()
 
         assert url == "http://localhost:32776"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_lgtm_get_prometheus_http_url(self, mock_get_mapped_port, mock_get_host):
+    def test_lgtm_get_prometheus_http_url(self, monkeypatch):
         """Test getting Prometheus HTTP URL."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.return_value = 32777
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(return_value=32777)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         lgtm = LgtmStackContainer()
         url = lgtm.get_prometheus_http_url()
@@ -301,18 +301,16 @@ class TestAzuriteContainer:
         assert azurite._key_file == "/path/to/key.pem"
         assert azurite._cert_extension == ".pem"
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_azurite_get_connection_string_default(
-        self, mock_get_mapped_port, mock_get_host
-    ):
+    def test_azurite_get_connection_string_default(self, monkeypatch):
         """Test getting connection string with default credentials."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.side_effect = lambda port: {
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(side_effect=lambda port: {
             10000: 32778,
             10001: 32779,
             10002: 32780,
-        }[port]
+        }[port])
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         azurite = AzuriteContainer()
         conn_str = azurite.get_connection_string()
@@ -322,18 +320,16 @@ class TestAzuriteContainer:
         assert "http://localhost:32779" in conn_str
         assert "http://localhost:32780" in conn_str
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_azurite_get_connection_string_custom_credentials(
-        self, mock_get_mapped_port, mock_get_host
-    ):
+    def test_azurite_get_connection_string_custom_credentials(self, monkeypatch):
         """Test getting connection string with custom credentials."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.side_effect = lambda port: {
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(side_effect=lambda port: {
             10000: 32778,
             10001: 32779,
             10002: 32780,
-        }[port]
+        }[port])
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         azurite = AzuriteContainer()
         conn_str = azurite.get_connection_string("myaccount", "mykey")
@@ -341,18 +337,16 @@ class TestAzuriteContainer:
         assert "myaccount" in conn_str
         assert "mykey" in conn_str
 
-    @patch("testcontainers.core.generic_container.GenericContainer.get_host")
-    @patch("testcontainers.core.generic_container.GenericContainer.get_mapped_port")
-    def test_azurite_get_connection_string_with_ssl(
-        self, mock_get_mapped_port, mock_get_host
-    ):
+    def test_azurite_get_connection_string_with_ssl(self, monkeypatch):
         """Test getting connection string with SSL enabled."""
-        mock_get_host.return_value = "localhost"
-        mock_get_mapped_port.side_effect = lambda port: {
+        mock_get_host = MagicMock(return_value="localhost")
+        mock_get_mapped_port = MagicMock(side_effect=lambda port: {
             10000: 32778,
             10001: 32779,
             10002: 32780,
-        }[port]
+        }[port])
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_host", mock_get_host)
+        monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         azurite = AzuriteContainer()
         azurite.with_ssl_pfx("/path/to/cert.pfx", "password")
