@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from testcontainers.modules.jdbc import JdbcDatabaseContainer
@@ -111,25 +111,25 @@ class TestPostgreSQLContainer:
 
         assert postgres.get_driver_class_name() == "org.postgresql.Driver"
 
-    def test_postgres_get_jdbc_url(self):
+    def test_postgres_get_jdbc_url(self, monkeypatch):
         """Test PostgreSQL JDBC URL generation."""
         postgres = PostgreSQLContainer()
         postgres._container = MagicMock()
 
-        with patch.object(postgres, 'get_host', return_value='localhost'):
-            with patch.object(postgres, 'get_mapped_port', return_value=5432):
-                url = postgres.get_jdbc_url()
+        monkeypatch.setattr(postgres, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(postgres, 'get_mapped_port', lambda port: 5432)
+        url = postgres.get_jdbc_url()
 
         assert url == "jdbc:postgresql://localhost:5432/test"
 
-    def test_postgres_get_connection_string(self):
+    def test_postgres_get_connection_string(self, monkeypatch):
         """Test PostgreSQL Python connection string."""
         postgres = PostgreSQLContainer()
         postgres._container = MagicMock()
 
-        with patch.object(postgres, 'get_host', return_value='localhost'):
-            with patch.object(postgres, 'get_mapped_port', return_value=5432):
-                url = postgres.get_connection_string()
+        monkeypatch.setattr(postgres, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(postgres, 'get_mapped_port', lambda port: 5432)
+        url = postgres.get_connection_string()
 
         assert url == "postgresql://test:test@localhost:5432/test"
 
@@ -231,25 +231,25 @@ class TestMySQLContainer:
 
         assert mysql.get_driver_class_name() == "com.mysql.cj.jdbc.Driver"
 
-    def test_mysql_get_jdbc_url(self):
+    def test_mysql_get_jdbc_url(self, monkeypatch):
         """Test MySQL JDBC URL generation."""
         mysql = MySQLContainer()
         mysql._container = MagicMock()
 
-        with patch.object(mysql, 'get_host', return_value='localhost'):
-            with patch.object(mysql, 'get_mapped_port', return_value=3306):
-                url = mysql.get_jdbc_url()
+        monkeypatch.setattr(mysql, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(mysql, 'get_mapped_port', lambda port: 3306)
+        url = mysql.get_jdbc_url()
 
         assert url == "jdbc:mysql://localhost:3306/test"
 
-    def test_mysql_get_connection_string(self):
+    def test_mysql_get_connection_string(self, monkeypatch):
         """Test MySQL Python connection string."""
         mysql = MySQLContainer()
         mysql._container = MagicMock()
 
-        with patch.object(mysql, 'get_host', return_value='localhost'):
-            with patch.object(mysql, 'get_mapped_port', return_value=3306):
-                url = mysql.get_connection_string()
+        monkeypatch.setattr(mysql, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(mysql, 'get_mapped_port', lambda port: 3306)
+        url = mysql.get_connection_string()
 
         assert url == "mysql://test:test@localhost:3306/test"
 
@@ -281,50 +281,50 @@ class TestMongoDBContainer:
 
         assert mongo._image.image_name == "mongo:6"
 
-    def test_mongodb_get_connection_string(self):
+    def test_mongodb_get_connection_string(self, monkeypatch):
         """Test MongoDB connection string (Java behavior - no auth)."""
         mongo = MongoDBContainer()
         mongo._container = MagicMock()
 
-        with patch.object(mongo, 'get_host', return_value='localhost'):
-            with patch.object(mongo, 'get_mapped_port', return_value=27017):
-                url = mongo.get_connection_string()
+        monkeypatch.setattr(mongo, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(mongo, 'get_mapped_port', lambda port: 27017)
+        url = mongo.get_connection_string()
 
         assert url == "mongodb://localhost:27017"
 
-    def test_mongodb_get_replica_set_url(self):
+    def test_mongodb_get_replica_set_url(self, monkeypatch):
         """Test MongoDB replica set URL (Java method)."""
         mongo = MongoDBContainer()
         mongo._container = MagicMock()
         mongo._container.status = "running"
 
-        with patch.object(mongo, 'get_host', return_value='localhost'):
-            with patch.object(mongo, 'get_mapped_port', return_value=27017):
-                with patch.object(mongo, 'is_running', return_value=True):
-                    url = mongo.get_replica_set_url("testdb")
+        monkeypatch.setattr(mongo, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(mongo, 'get_mapped_port', lambda port: 27017)
+        monkeypatch.setattr(mongo, 'is_running', lambda: True)
+        url = mongo.get_replica_set_url("testdb")
 
         assert url == "mongodb://localhost:27017/testdb"
 
-    def test_mongodb_get_replica_set_url_default_db(self):
+    def test_mongodb_get_replica_set_url_default_db(self, monkeypatch):
         """Test MongoDB replica set URL with default database."""
         mongo = MongoDBContainer()
         mongo._container = MagicMock()
         mongo._container.status = "running"
 
-        with patch.object(mongo, 'get_host', return_value='localhost'):
-            with patch.object(mongo, 'get_mapped_port', return_value=27017):
-                with patch.object(mongo, 'is_running', return_value=True):
-                    url = mongo.get_replica_set_url()
+        monkeypatch.setattr(mongo, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(mongo, 'get_mapped_port', lambda port: 27017)
+        monkeypatch.setattr(mongo, 'is_running', lambda: True)
+        url = mongo.get_replica_set_url()
 
         assert url == "mongodb://localhost:27017/test"
 
-    def test_mongodb_get_replica_set_url_not_running(self):
+    def test_mongodb_get_replica_set_url_not_running(self, monkeypatch):
         """Test MongoDB replica set URL raises when not running."""
         mongo = MongoDBContainer()
 
-        with patch.object(mongo, 'is_running', return_value=False):
-            with pytest.raises(RuntimeError, match="MongoDBContainer should be started first"):
-                mongo.get_replica_set_url()
+        monkeypatch.setattr(mongo, 'is_running', lambda: False)
+        with pytest.raises(RuntimeError, match="MongoDBContainer should be started first"):
+            mongo.get_replica_set_url()
 
     def test_mongodb_wait_strategy(self):
         """Test MongoDB wait strategy is configured."""
@@ -360,26 +360,26 @@ class TestRedisContainer:
         assert result is redis
         assert redis._password == "mypassword"
 
-    def test_redis_get_connection_url_no_password(self):
+    def test_redis_get_connection_url_no_password(self, monkeypatch):
         """Test Redis connection URL without password."""
         redis = RedisContainer()
         redis._container = MagicMock()
 
-        with patch.object(redis, 'get_host', return_value='localhost'):
-            with patch.object(redis, 'get_mapped_port', return_value=6379):
-                url = redis.get_connection_url()
+        monkeypatch.setattr(redis, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(redis, 'get_mapped_port', lambda port: 6379)
+        url = redis.get_connection_url()
 
         assert url == "redis://localhost:6379"
 
-    def test_redis_get_connection_url_with_password(self):
+    def test_redis_get_connection_url_with_password(self, monkeypatch):
         """Test Redis connection URL with password."""
         redis = RedisContainer()
         redis.with_password("mypassword")
         redis._container = MagicMock()
 
-        with patch.object(redis, 'get_host', return_value='localhost'):
-            with patch.object(redis, 'get_mapped_port', return_value=6379):
-                url = redis.get_connection_url()
+        monkeypatch.setattr(redis, 'get_host', lambda: 'localhost')
+        monkeypatch.setattr(redis, 'get_mapped_port', lambda port: 6379)
+        url = redis.get_connection_url()
 
         assert url == "redis://:mypassword@localhost:6379"
 
