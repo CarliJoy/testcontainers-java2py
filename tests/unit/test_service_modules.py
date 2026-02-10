@@ -51,25 +51,35 @@ class TestConsulContainer:
 
     def test_consul_get_http_port(self, monkeypatch):
         """Test getting HTTP port."""
-        mock_get_mapped_port = MagicMock(return_value=32768)
+        call_tracker = {"called_with": None}
+        
+        def mock_get_mapped_port(self, port):
+            call_tracker["called_with"] = port
+            return 32768
+        
         monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         consul = ConsulContainer()
         port = consul.get_http_port()
 
         assert port == 32768
-        mock_get_mapped_port.assert_called_once_with(8500)
+        assert call_tracker["called_with"] == 8500
 
     def test_consul_get_grpc_port(self, monkeypatch):
         """Test getting gRPC port."""
-        mock_get_mapped_port = MagicMock(return_value=32769)
+        call_tracker = {"called_with": None}
+        
+        def mock_get_mapped_port(self, port):
+            call_tracker["called_with"] = port
+            return 32769
+        
         monkeypatch.setattr("testcontainers.core.generic_container.GenericContainer.get_mapped_port", mock_get_mapped_port)
 
         consul = ConsulContainer()
         port = consul.get_grpc_port()
 
         assert port == 32769
-        mock_get_mapped_port.assert_called_once_with(8502)
+        assert call_tracker["called_with"] == 8502
 
 
 # LDAP Tests

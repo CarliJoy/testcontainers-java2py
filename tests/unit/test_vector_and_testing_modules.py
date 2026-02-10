@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import Mock
-
 import pytest
 from testcontainers.modules.qdrant import QdrantContainer
 from testcontainers.modules.weaviate import WeaviateContainer
@@ -387,7 +385,12 @@ class TestToxiproxyContainer:
 
     def test_toxiproxy_get_proxy_port(self, monkeypatch):
         """Test getting proxy port."""
-        mock_get_mapped_port = Mock(return_value=32769)
+        call_tracker = {"called_with": None}
+        
+        def mock_get_mapped_port(self, port):
+            call_tracker["called_with"] = port
+            return 32769
+        
         monkeypatch.setattr(
             "testcontainers.core.generic_container.GenericContainer.get_mapped_port",
             mock_get_mapped_port
@@ -397,7 +400,7 @@ class TestToxiproxyContainer:
         port = toxiproxy.get_proxy_port(8666)
 
         assert port == 32769
-        mock_get_mapped_port.assert_called_with(8666)
+        assert call_tracker["called_with"] == 8666
 
     def test_toxiproxy_get_proxy_port_invalid_range(self):
         """Test getting proxy port with invalid port number."""
